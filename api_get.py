@@ -1,6 +1,6 @@
 import requests
 
-url = r"https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00:00:00Z/2018-03-18T12:31:12Z&limit=10&offset=0&bbox=7,54,16,58"
+url = r"https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00:00:00Z/2018-03-18T12:31:12Z&limit=10000&offset=0&bbox=7,54,16,58"
 
 response = requests.get(url)
 # if response.status_code == 200:
@@ -35,7 +35,9 @@ for i in range(len(data['features'])):
         outer_dict[first_dict_layer][second_dict_layer ] = {}
         outer_dict[first_dict_layer][second_dict_layer ][date_and_time] = data['features'][i]['properties']['value']
     else:
-        outer_dict[first_dict_layer][second_dict_layer]['value'] = data['features'][i]['properties']['value']
+        outer_dict[first_dict_layer][second_dict_layer][date_and_time] = data['features'][i]['properties']['value']
 
 # print(outer_dict)
-print(outer_dict['pressure'])
+# print(outer_dict['pressure'])
+
+print(outer_dict['pressure'].get('06074'))
