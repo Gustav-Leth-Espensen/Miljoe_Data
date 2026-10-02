@@ -1,0 +1,27 @@
+services:
+  # app:
+  #   image: python
+  #   build: .
+  #   env_file:
+  #     - ./defult.env
+  #   environment:
+  #     DATABASE_URL: postgresql://app:secret@db:5432/app
+  #     POSTGRES_USER: app
+  #     POSTGRES_PASSWORD: ${APP_PASSWORD}
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+
+  db:
+    image: postgres:18
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: data_db
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "app", "-d", "data_db"]
+      interval: 5s
+      retries: 5
+

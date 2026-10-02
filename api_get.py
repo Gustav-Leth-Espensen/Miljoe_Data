@@ -1,6 +1,16 @@
 import requests
 
-url = r"https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00:00:00Z/2018-03-18T12:31:12Z&limit=10&offset=0&bbox=7,54,16,58"
+
+## https://opendataapi.dmi.dk/v2/metObs/collections/station/items?type=Pluvio&datetime=2020-11-01T00:00:00Z/2020-12-01T00:00:00Z&status=Active&bbox=7,54,16,58 
+## Vis stations ID og hvilke målere de har
+
+
+
+def extract_from_dmi(url: str, date_start:str, date_end:str, observations:int, offset:int, bbox = "7,54,16,58"):
+    r"https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?"
+    nye_url = url + "datetime" + date_start
+
+url = r"https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00:00:00Z/2018-03-18T12:31:12Z&limit=1000&offset=0&bbox=7,54,16,58"
 
 response = requests.get(url)
 # if response.status_code == 200:
@@ -35,7 +45,7 @@ for i in range(len(data['features'])):
         outer_dict[first_dict_layer][second_dict_layer ] = {}
         outer_dict[first_dict_layer][second_dict_layer ][date_and_time] = data['features'][i]['properties']['value']
     else:
-        outer_dict[first_dict_layer][second_dict_layer]['value'] = data['features'][i]['properties']['value']
+        outer_dict[first_dict_layer][second_dict_layer][date_and_time] = data['features'][i]['properties']['value']
 
 # print(outer_dict)
 print(outer_dict['pressure'])
