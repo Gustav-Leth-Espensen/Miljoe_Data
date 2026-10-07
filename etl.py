@@ -35,29 +35,75 @@ def transform(extracted_data):
 # print(transform(extract_from_dmi()).keys())
 # print(list(transform(extract_from_dmi()).keys()))# cursor = conn.cursor()
 
-conn = psycopg.connect(
-    "postgresql://app:test@db:5432/data_db"
-)
-cursor = conn.cursor()
+
+
+def load_humidity(transformed_data):
+    conn = psycopg.connect(
+        "postgresql://app:test@db:5432/data_db"
+    )
+    cursor = conn.cursor()
+    print(transformed_data['humidity'])
+    print(transformed_data['humidity'][0][0])
+    print(transformed_data['humidity'][0][1])
+    print(transformed_data['humidity'][0][2])
+    for i in range(len(transformed_data['humidity'])):
+        station_id = transformed_data['humidity'][i][0]
+        observed_time = transformed_data['humidity'][i][1]
+        percent_humidity = transformed_data['humidity'][i][2]
+
+        cursor.execute(
+            "INSERT INTO humidity(station_id, observed_time, percent_humidity) VALUES(%s, %s, %s)",
+            (station_id, observed_time, percent_humidity)
+        )
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return
+
+
+#
+# def load_temp_dry(transformed_data):
+#     for i in range(len(transformed_data['temp_dry'])):
+#         station_ID = transformed_data['temp_dry'][i][0]
+#         observed_time = transformed_data['temp_dry'][i][1]
+#         temperature = transformed_data['temp_dry'][i][2]
+#         cursor.execute(
+#             "INSERT INTO temp_dry(station_ID, observed_time, temperature) VALUES(%s, %s, %s)",
+#             (station_ID, observed_time, temperature)
+#         )
+#     return
+
+# def load_temp_dry(transformed_data):
+#     for i in range(len(transformed_data['pressure'])):
+#         station_ID = transformed_data['pressure'][i][0]
+#         observed_time = transformed_data['pressure'][i][1]
+#         percent_humidity = transformed_data['pressure'][i][2]
+#         cursor.execute(
+#             "INSERT INTO pressure(station_ID, observed_time, percent_humidity) VALUES(%s, %s, %s)",
+#             (station_ID, observed_time, percent_humidity)
+#         )
+#     return
+
+
 
 
 ### Det er farligt at skrive {key} ind i string da folk kan give en key som er database down
 ### Tag nogle enkelt og hardcode det
-def load(transformed_data):
-    keys_list = list(transformed_data.keys())
-    for key in keys_list:
-        for i in range(len(transformed_data[key])):
-            station_id = transformed_data[key][i][0]
-            date_and_time = transformed_data[key][i][1]
-            value = transformed_data[key][i][2]
-            cursor.execute(
-            f"INSERT INTO {key}(station_id, date_time, value_d) VALUES(%s, %s, %s)",
-            (station_id, date_and_time, value)
-            )
-    return
-    conn.commit()
-    cursor.close()
-    conn.close()
+### Denne function tager alle forskellige keys og sætter data ind hvis tabellen existere
+# def load(transformed_data):
+#     keys_list = list(transformed_data.keys())
+#     for key in keys_list:
+#         for i in range(len(transformed_data[key])):
+#             station_id = transformed_data[key][i][0]
+#             date_and_time = transformed_data[key][i][1]
+#             value = transformed_data[key][i][2]
+#             cursor.execute(
+#             f"INSERT INTO {key}(station_id, date_time, value_d) VALUES(%s, %s, %s)",
+#             (station_id, date_and_time, value)
+#             )
+#     return
+
 
 
 
