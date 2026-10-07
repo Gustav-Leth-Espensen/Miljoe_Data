@@ -18,35 +18,43 @@ def extract_from_dmi():
 #tilføj tjek for om indhentet data er korrekt
 def transform(extracted_data):
     data = extracted_data
-    outer_dict = {}
+    transformed_data = {}
     for i in range(len(data['features'])):
         parameter_id = data['features'][i]['properties']['parameterId']
         station_id = data['features'][i]['properties']['stationId']
-        date_and_time = data['features'][i]['properties']['observed'][:-1]
+        date_and_time = data['features'][i]['properties']['observed']
         value = data['features'][i]['properties']['value']
-        if data['features'][i]['properties']['parameterId'] not in outer_dict.keys():
-            outer_dict[parameter_id] = []
-            outer_dict[parameter_id].append([station_id, date_and_time, value])
+        if data['features'][i]['properties']['parameterId'] not in transformed_data.keys():
+            transformed_data[parameter_id] = []
+            transformed_data[parameter_id].append([station_id, date_and_time, value])
         else:
-            outer_dict[parameter_id].append([station_id, date_and_time, value])
+            transformed_data[parameter_id].append([station_id, date_and_time, value])
 
-    return outer_dict
+    return transformed_data
 
-# print(transform(extract_from_dmi()))
-# humid = transform(extract_from_dmi())['humidity']
+# print(transform(extract_from_dmi()).keys())
+# print(list(transform(extract_from_dmi()).keys()))# cursor = conn.cursor()
 
 conn = psycopg.connect(
     "postgresql://app:test@db:5432/data_db"
 )
 cursor = conn.cursor()
 
-def load_humidity(transformed_data):
-    for i in range(len(transformed_data)):
-        cursor.execute(
-        "INSERT INTO humidity(station_id, date_time, value_d) VALUES(%s, %s, %s)",
-        (transformed_data[i][0], transformed_data[i][1], transformed_data[i][2])
-        )
 
+### Det er farligt at skrive {key} ind i string da folk kan give en key som er database down
+### Tag nogle enkelt og hardcode det
+def load(transformed_data):
+    keys_list = list(transformed_data.keys())
+    for key in keys_list:
+        for i in range(len(transformed_data[key])):
+            station_id = transformed_data[key][i][0]
+            date_and_time = transformed_data[key][i][1]
+            value = transformed_data[key][i][2]
+            cursor.execute(
+            f"INSERT INTO {key}(station_id, date_time, value_d) VALUES(%s, %s, %s)",
+            (station_id, date_and_time, value)
+            )
+    return
     conn.commit()
     cursor.close()
     conn.close()
