@@ -15,20 +15,20 @@ def extract_from_dmi():
     return extracted_data
 
 # print(extract_from_dmi())
-
+#tilføj tjek for om indhentet data er korrekt
 def transform(extracted_data):
     data = extracted_data
     outer_dict = {}
     for i in range(len(data['features'])):
-        para_id = data['features'][i]['properties']['parameterId']
+        parameter_id = data['features'][i]['properties']['parameterId']
         station_id = data['features'][i]['properties']['stationId']
         date_and_time = data['features'][i]['properties']['observed'][:-1]
         value = data['features'][i]['properties']['value']
         if data['features'][i]['properties']['parameterId'] not in outer_dict.keys():
-            outer_dict[para_id] = []
-            outer_dict[para_id].append([station_id, date_and_time, value])
+            outer_dict[parameter_id] = []
+            outer_dict[parameter_id].append([station_id, date_and_time, value])
         else:
-            outer_dict[para_id].append([station_id, date_and_time, value])
+            outer_dict[parameter_id].append([station_id, date_and_time, value])
 
     return outer_dict
 
