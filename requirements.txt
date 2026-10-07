@@ -1,6 +1,5 @@
 requests==2.34.2
 
-#find new version
 psycopg == 3.3.6
 psycopg-binary==3.3.6
 

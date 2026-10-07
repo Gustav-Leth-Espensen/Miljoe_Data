@@ -1,15 +1,8 @@
 import psycopg
-import python_to_SQL as p2s
+import etl
 
 if __name__ == '__main__':
-    print("Hello World")
-
-    conn = psycopg.connect(
-    "postgresql://app:test@db:5432/data_db"
-    )
-    cursor = conn.cursor()
-
-    cursor.execute(p2s.create_table_sql())
-    conn.commit()
-    cursor.close()
-    conn.close()
+    extracted_data = etl.extract_from_dmi()
+    transformed_data = etl.transform(extracted_data)
+    humid = etl.transform(extracted_data)['humidity']
+    etl.load_humidity(humid)

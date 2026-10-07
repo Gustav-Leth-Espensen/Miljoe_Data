@@ -1,5 +1,5 @@
-CREATE TABLE IF NOT EXISTS test2 (
-    product_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    price FLOAT NOT NULL
+CREATE TABLE IF NOT EXISTS humidity (
+    station_ID VARCHAR(255) NOT NULL,
+    date_time VARCHAR(255) NOT NULL,
+    value_d FLOAT NOT NULL
     )
