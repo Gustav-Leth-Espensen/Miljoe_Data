@@ -72,6 +72,9 @@ TestResult.xml
 nunit-*.xml
 *.xml
 
+# .idea from PyCharm
+.idea/
+
 # Approval Tests result files
 *.received.*
 
