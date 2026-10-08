@@ -1,23 +1,29 @@
 import requests
 import psycopg
 
-### Burde gøre dmi_parameters til parametre i functionen, samme med URL
-def extract_from_dmi():
+### datetime; is the start and end dates with timezone
+### in this format: "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
+### limit; set number of observation up to 300.000
+### offset; makes observations start from that number, needs to be less than total observations left in dataset
+### bbox; is area measured, standard set to Denmark
+def extract_from_dmi(datetime:str, limit:int, offset:int, bbox:str = "7,54,16,58"):
     url = "https://opendataapi.dmi.dk/v2/metObs/collections/observation/items"
-
     dmi_parameters = {
-        "datetime": "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z",
-        "limit": "1000",
-        "offset": "0",
-        "bbox": "7,54,16,58"
+        "datetime": datetime,
+        "limit": limit,
+        "offset": offset,
+        "bbox": bbox
     }
+
     response = requests.get(url, params=dmi_parameters)
     if not response.ok:  ### Returns false if response error is 400+
         return "Failed API response"
     extracted_data = response.json()
     return extracted_data
 
-# print(extract_from_dmi())
+#
+# temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
+# print(extract_from_dmi(temp_datetime,100,100000 ))
 
 #tilføj tjek for om indhentet data er korrekt
 def transform(extracted_data):

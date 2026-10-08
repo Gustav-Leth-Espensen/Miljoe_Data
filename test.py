@@ -1,5 +1,7 @@
 import unittest
 from etl import transform
+from etl import extract_from_dmi
+
 
 class TestTransformer(unittest.TestCase):
 
@@ -95,6 +97,13 @@ class TestTransformer(unittest.TestCase):
     def test_non_input(self):
         test_dict = {"greeting": "Hello, world!"}
         empty_dict = {}
+        api_fail = "Failed API response"
+
+        self.assertEqual(transform(test_dict), "Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api")
+        self.assertEqual(transform(empty_dict), "This is an empty dictionary")
+        self.assertEqual(transform(api_fail), "Failed API response")
+        return
+
     def test_skip_missing_data(self):
         extracted_data = {
             "features": [
@@ -127,4 +136,30 @@ class TestTransformer(unittest.TestCase):
             18
         ]
         )
+        return
+
+class TestExtractor(unittest.TestCase):
+
+    def test_random_datetime(self):
+        temp_datetime = "2050102!"
+
+        function = extract_from_dmi(temp_datetime,1,0 )
+        expected = "Failed API response"
+        self.assertEqual(function, expected)
+        return
+
+    def test_limit(self):
+        temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
+
+        function = extract_from_dmi(temp_datetime,300001,0 )
+        expected = "Failed API response"
+        self.assertEqual(function, expected)
+        return
+
+    def test_offset(self):
+        temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
+
+        function = extract_from_dmi(temp_datetime,100,100000000 )
+        expected = "Failed API response"
+        self.assertEqual(function, expected)
         return
