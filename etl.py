@@ -1,6 +1,7 @@
 import requests
 import psycopg
 
+### Burde gøre dmi_parameters til parametre i functionen, samme med URL
 def extract_from_dmi():
     url = "https://opendataapi.dmi.dk/v2/metObs/collections/observation/items"
 
@@ -11,12 +12,24 @@ def extract_from_dmi():
         "bbox": "7,54,16,58"
     }
     response = requests.get(url, params=dmi_parameters)
+    if not response.ok:  ### Returns false if response error is 400+
+        return "Failed API response"
     extracted_data = response.json()
     return extracted_data
 
 # print(extract_from_dmi())
+
+#tilføj tjek for om indhentet data er korrekt
 def transform(extracted_data):
-    data = extracted_data
+    if extracted_data == {}:
+        return "This is an empty dictionary"
+
+    if extracted_data == "Failed API response":
+        return "Failed API response"
+
+    if 'features' not in extracted_data:
+        return "Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api"
+    data = extracted_data ### Det er lidt underligt at ændre navnet her, skal vi gøre det i toppen eller lade helt være?
     transformed_data = {}
     for i in range(len(data['features'])):
         parameter_id = data['features'][i]['properties']['parameterId']
