@@ -15,7 +15,6 @@ def extract_from_dmi():
     return extracted_data
 
 # print(extract_from_dmi())
-#tilføj tjek for om indhentet data er korrekt
 def transform(extracted_data):
     data = extracted_data
     transformed_data = {}
@@ -24,6 +23,16 @@ def transform(extracted_data):
         station_id = data['features'][i]['properties']['stationId']
         date_and_time = data['features'][i]['properties']['observed']
         value = data['features'][i]['properties']['value']
+
+        if parameter_id is None:
+            continue
+        if station_id is None:#snak med Rasmus
+            continue
+        if date_and_time is None: #snak med Rasmus
+            continue
+        if value is None:
+            continue
+
         if data['features'][i]['properties']['parameterId'] not in transformed_data.keys():
             transformed_data[parameter_id] = []
             transformed_data[parameter_id].append([station_id, date_and_time, value])
