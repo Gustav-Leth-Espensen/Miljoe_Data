@@ -119,11 +119,6 @@ def load_pressure(transformed_data):
     return
 
 
-
-
-
-
-
 #### NOT IN USE RIGHT NOW (DONT LOOK RASMUS)
 ### Det er farligt at skrive {key} ind i string da folk kan give en key som er database down
 ### Tag nogle enkelt og hardcode det

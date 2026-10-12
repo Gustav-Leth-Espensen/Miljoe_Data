@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from etl import transform
 from etl import extract_from_dmi
 
@@ -163,3 +164,27 @@ class TestExtractor(unittest.TestCase):
         expected = "Failed API response"
         self.assertEqual(function, expected)
         return
+
+class TestTransformer(unittest.TestCase):
+    def test_dif_parmId_inputs(self):
+        self.assertEqual(transform({"features":[{'properties': {'parameterId': 'temp_dry', 'value': -11.7,'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}}, 
+                        {'properties': {'parameterId': 'radia_glob_past1h', 'value': 40.0, 'observed': '2003-01-27T10:00:00Z','stationId': '06068'}}]})
+                        ,{'temp_dry': [['04224', '2003-01-27T10:00:00Z', -11.7]], 'radia_glob_past1h': [['06068', '2003-01-27T10:00:00Z', 40.0]]})
+    def test_same_parmId_inputs(self):
+        self.assertEqual(transform({"features":[{'properties': {'parameterId': 'temp_dry', 'value': -11.7, 'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}}, 
+                        {'properties': {'parameterId': 'temp_dry', 'value': 40.0, 'observed': '2003-01-27T10:00:00Z','stationId': '06068'}}]})
+                        ,{'temp_dry': [['04224', '2003-01-27T10:00:00Z',-11.7],['06068','2003-01-27T10:00:00Z',40.0]]})
+    def test_notrel_data(self):
+        self.assertEqual(transform({"features":[{'properties': {'parameterId': 'temp_dry', 'created': '2025-08-25T17:00:16.827145Z', 'value': -11.7, 'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}}, 
+                                {'properties': {'parameterId': 'temp_dry', 'created': '2025-08-25T17:00:16.827145Z', 'value': 40.0, 'observed':'2003-01-27T10:00:00Z','stationId': '06068',}}]})
+                                ,{'temp_dry': [['04224', '2003-01-27T10:00:00Z',-11.7],['06068','2003-01-27T10:00:00Z',40.0]]})
+
+class TestApiCall(unittest.TestCase):
+    @patch('etl.extract_from_dmi')
+    def test_process_api_result(self, mock_from_dmi):
+        mock_from_dmi.return_value = {'type': 'FeatureCollection', 'features': [{'type': 'Feature', 'id': '2b55028a-aa90-6af2-3692-3a0855de24eb', 'geometry': {'type': 'Point', 'coordinates': [10.1074, 57.5705]}, 'properties': {'parameterId': 'precip_dur_past10min', 'created': '2025-08-11T10:06:24.225346Z', 'value': 0.0, 'observed': '2018-03-18T12:30:00Z', 'stationId': '05005'}}, {'type': 'Feature', 'id': '98845022-d7d1-1c18-a24f-3297f295634a', 'geometry': {'type': 'Point', 'coordinates': [10.1074, 57.5705]}, 'properties': {'parameterId': 'precip_past10min', 'created': '2025-08-11T10:06:23.343744Z', 'value': 0.0, 'observed': '2018-03-18T12:30:00Z', 'stationId': '05005'}}], 'timeStamp': '2026-10-09T11:53:32Z', 'numberReturned': 2, 'links': [{'href': 'https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00%3A00%3A00Z%2F2018-03-18T12%3A31%3A12Z&limit=2&offset=0&bbox=7%2C54%2C16%2C58', 'rel': 'self', 'type': 'application/geo+json', 'title': 'This document'}, {'href': 'https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00%3A00%3A00Z%2F2018-03-18T12%3A31%3A12Z&limit=2&bbox=7%2C54%2C16%2C58&offset=2', 'rel': 'next', 'type': 'application/geo+json', 'title': 'Next set of results'}]}
+        result = transform(extract_from_dmi("2018-02-12T00:00:00Z/2018-03-18T12:31:12Z",2,0))
+        self.assertEqual(result, {'precip_dur_past10min': [['05005', '2018-03-18T12:30:00Z', 0.0]], 'precip_past10min': [['05005', '2018-03-18T12:30:00Z', 0.0]]})
+
+if __name__ == '__main__':
+    unittest.main()
