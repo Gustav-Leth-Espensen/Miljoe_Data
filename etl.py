@@ -6,7 +6,7 @@ import psycopg
 ### limit; set number of observation up to 300.000
 ### offset; makes observations start from that number, needs to be less than total observations left in dataset
 ### bbox; is area measured, standard set to Denmark
-def extract_from_dmi(datetime:str, limit:int, offset:int, bbox:str = "7,54,16,58"):
+def extract_from_dmi(datetime:str="2018-02-12T00:00:00Z/2018-03-18T12:31:12Z", limit:int=1000, offset:int=0, bbox:str = "7,54,16,58"):
     url = "https://opendataapi.dmi.dk/v2/metObs/collections/observation/items"
     dmi_parameters = {
         "datetime": datetime,

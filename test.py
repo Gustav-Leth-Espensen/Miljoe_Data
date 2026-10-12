@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
-from etl import transform
-from etl import extract_from_dmi
+from unittest.mock import patch, Mock
+from etl import transform, extract_from_dmi, open_connection, load_humidity, load_pressure, load_temp_dry, close_connection
 
 
 class TestTransformer(unittest.TestCase):
@@ -139,6 +139,28 @@ class TestTransformer(unittest.TestCase):
         )
         return
 
+    def test_transform_empty_data(self):
+        extracted_data = {
+            "features": []
+        }
+        result = transform(extracted_data)
+        self.assertEqual(result, {})
+
+    def test_dif_parmId_inputs(self):
+        self.assertEqual(transform({"features":[{'properties': {'parameterId': 'temp_dry', 'value': -11.7,'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}},
+                        {'properties': {'parameterId': 'radia_glob_past1h', 'value': 40.0, 'observed': '2003-01-27T10:00:00Z','stationId': '06068'}}]})
+                        ,{'temp_dry': [['04224', '2003-01-27T10:00:00Z', -11.7]], 'radia_glob_past1h': [['06068', '2003-01-27T10:00:00Z', 40.0]]})
+    def test_same_parmId_inputs(self):
+        self.assertEqual(transform({"features":[{'properties': {'parameterId': 'temp_dry', 'value': -11.7, 'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}},
+                        {'properties': {'parameterId': 'temp_dry', 'value': 40.0, 'observed': '2003-01-27T10:00:00Z','stationId': '06068'}}]})
+                        ,{'temp_dry': [['04224', '2003-01-27T10:00:00Z',-11.7],['06068','2003-01-27T10:00:00Z',40.0]]})
+    def test_notrel_data(self):
+        self.assertEqual(transform({"features":[{'properties': {'parameterId': 'temp_dry', 'created': '2025-08-25T17:00:16.827145Z', 'value': -11.7, 'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}},
+                                {'properties': {'parameterId': 'temp_dry', 'created': '2025-08-25T17:00:16.827145Z', 'value': 40.0, 'observed':'2003-01-27T10:00:00Z','stationId': '06068',}}]})
+                                ,{'temp_dry': [['04224', '2003-01-27T10:00:00Z',-11.7],['06068','2003-01-27T10:00:00Z',40.0]]})
+
+
+
 class TestExtractor(unittest.TestCase):
 
     def test_random_datetime(self):
@@ -165,26 +187,154 @@ class TestExtractor(unittest.TestCase):
         self.assertEqual(function, expected)
         return
 
-class TestTransformer(unittest.TestCase):
-    def test_dif_parmId_inputs(self):
-        self.assertEqual(transform({"features":[{'properties': {'parameterId': 'temp_dry', 'value': -11.7,'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}}, 
-                        {'properties': {'parameterId': 'radia_glob_past1h', 'value': 40.0, 'observed': '2003-01-27T10:00:00Z','stationId': '06068'}}]})
-                        ,{'temp_dry': [['04224', '2003-01-27T10:00:00Z', -11.7]], 'radia_glob_past1h': [['06068', '2003-01-27T10:00:00Z', 40.0]]})
-    def test_same_parmId_inputs(self):
-        self.assertEqual(transform({"features":[{'properties': {'parameterId': 'temp_dry', 'value': -11.7, 'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}}, 
-                        {'properties': {'parameterId': 'temp_dry', 'value': 40.0, 'observed': '2003-01-27T10:00:00Z','stationId': '06068'}}]})
-                        ,{'temp_dry': [['04224', '2003-01-27T10:00:00Z',-11.7],['06068','2003-01-27T10:00:00Z',40.0]]})
-    def test_notrel_data(self):
-        self.assertEqual(transform({"features":[{'properties': {'parameterId': 'temp_dry', 'created': '2025-08-25T17:00:16.827145Z', 'value': -11.7, 'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}}, 
-                                {'properties': {'parameterId': 'temp_dry', 'created': '2025-08-25T17:00:16.827145Z', 'value': 40.0, 'observed':'2003-01-27T10:00:00Z','stationId': '06068',}}]})
-                                ,{'temp_dry': [['04224', '2003-01-27T10:00:00Z',-11.7],['06068','2003-01-27T10:00:00Z',40.0]]})
+    @patch("etl.requests.get") #erstatter request.get med en mock
+    def test_extract_from_dmi(self, mock_get): #testen kontrollerer at det forventede json data returneres
+        mock_get.return_value.ok = True #simulerer vellykket api kald
+        mock_get.return_value.json.return_value = {"features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [10.1074, 57.5705]
+                    },
+                    "properties": {
+                        "parameterId": "humidity",
+                        "stationId": "06124",
+                        "observed": "2018-03-18T12:30:00Z",
+                        "created": "2018-03-18T12:31:00Z",
+                        "value": 80
+                    }
+                }
 
-class TestApiCall(unittest.TestCase):
-    @patch('etl.extract_from_dmi')
-    def test_process_api_result(self, mock_from_dmi):
-        mock_from_dmi.return_value = {'type': 'FeatureCollection', 'features': [{'type': 'Feature', 'id': '2b55028a-aa90-6af2-3692-3a0855de24eb', 'geometry': {'type': 'Point', 'coordinates': [10.1074, 57.5705]}, 'properties': {'parameterId': 'precip_dur_past10min', 'created': '2025-08-11T10:06:24.225346Z', 'value': 0.0, 'observed': '2018-03-18T12:30:00Z', 'stationId': '05005'}}, {'type': 'Feature', 'id': '98845022-d7d1-1c18-a24f-3297f295634a', 'geometry': {'type': 'Point', 'coordinates': [10.1074, 57.5705]}, 'properties': {'parameterId': 'precip_past10min', 'created': '2025-08-11T10:06:23.343744Z', 'value': 0.0, 'observed': '2018-03-18T12:30:00Z', 'stationId': '05005'}}], 'timeStamp': '2026-10-09T11:53:32Z', 'numberReturned': 2, 'links': [{'href': 'https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00%3A00%3A00Z%2F2018-03-18T12%3A31%3A12Z&limit=2&offset=0&bbox=7%2C54%2C16%2C58', 'rel': 'self', 'type': 'application/geo+json', 'title': 'This document'}, {'href': 'https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00%3A00%3A00Z%2F2018-03-18T12%3A31%3A12Z&limit=2&bbox=7%2C54%2C16%2C58&offset=2', 'rel': 'next', 'type': 'application/geo+json', 'title': 'Next set of results'}]}
-        result = transform(extract_from_dmi("2018-02-12T00:00:00Z/2018-03-18T12:31:12Z",2,0))
-        self.assertEqual(result, {'precip_dur_past10min': [['05005', '2018-03-18T12:30:00Z', 0.0]], 'precip_past10min': [['05005', '2018-03-18T12:30:00Z', 0.0]]})
+            ]
+        }
+
+        result = extract_from_dmi("2018-02-12T00:00:00Z/2018-03-18T12:30:00Z", 1000, 0)
+
+        self.assertIn("features", result) #kontrollerer at features findes i resultatet
+        self.assertEqual(len(result["features"]),1) #tjekker antallet af observationer
+        properties = result["features"][0]["properties"]
+        self.assertEqual(properties["parameterId"], "humidity") #tjekker at parameterid er humidity
+        self.assertEqual(properties["stationId"], "06124")
+        self.assertEqual(properties["created"], "2018-03-18T12:31:00Z")
+        self.assertEqual(properties["observed"], "2018-03-18T12:30:00Z")
+        self.assertEqual(properties["value"], 80) #Tjekker værdi af en observation
+        return
+
+class TestLoad(unittest.TestCase):
+
+    @patch("etl.psycopg.connect")
+    def test_open_connection(self, mock_connect): #tester
+
+        mock_connection = Mock()
+        mock_connect.return_value = mock_connection #mock_connect return value skal være lig mock_connection
+        result = open_connection()
+
+        mock_connect.assert_called_once_with(
+            "postgresql://app:test@db:5432/data_db") #kotrollerer at mock connect kaldes en gang med den definerede streng
+
+        self.assertEqual(result, mock_connection) #kontrollerer at open_connection returnerer det samme objekt som mock_connectiong
+
+
+    def test_close_connection(self): #tjekker at close forsøger at lukke forbindelse og cursor
+
+        cursor = Mock() # mock objekt
+        conn = Mock() #mock objekt
+
+        close_connection(conn, cursor) #kalder funktion med mock objekter
+        conn.close.assert_called_once()
+        cursor.close.assert_called_once()
+
+    @patch("etl.open_connection")
+    def test_load_humidity(self, mock_open_connection): #kontrolere om humidity data sendes til cursoren
+        mock_conn = Mock() #mock objekt
+        mock_cursor = Mock() #mock object
+
+        mock_open_connection.return_value = mock_conn #mock_open_connection skal returnere mock_conn
+        mock_conn.cursor.return_value = mock_cursor #mock_conn.cursor skal returnere mock cursor
+
+        mock_transformed_data = {
+            "humidity": [
+                ["06124", "2018-03-18T12:30:00Z", 50, ],
+                ["06126", "2018-03-18T12:30:00Z", 70, ],
+
+            ]
+                }
+
+        load_humidity(mock_transformed_data) #kører load med mock data
+
+        mock_cursor.executemany.assert_called_once()
+        #kontrollerer at de data der er sendt til executemany() er de samme som mock_transformed_data
+        # call_args tager argumenter som sidste mock blev kaldet med, her er det insert_query og args[1] er vores mock data
+        self.assertEqual(mock_cursor.executemany.call_args.args[1],
+            mock_transformed_data["humidity"]) #
+
+        mock_conn.commit.assert_called_once()
+        mock_cursor.close.assert_called_once()
+        mock_conn.close.assert_called_once()
+
+
+    @patch("etl.open_connection")
+    def test_load_temp_dry(self, mock_open_connection):
+        mock_conn = Mock()
+        mock_cursor = Mock()
+
+        mock_open_connection.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+
+        mock_transformed_data = {
+            "temp_dry": [
+                ["06124", "2018-03-18T12:30:00Z", 15, ],
+                ["06126", "2018-03-18T12:30:00Z", 20, ],
+
+            ]
+                }
+
+        load_temp_dry(mock_transformed_data)
+
+        mock_cursor.executemany.assert_called_once()
+
+        self.assertEqual(mock_cursor.executemany.call_args.args[1],
+            mock_transformed_data["temp_dry"])
+
+        mock_conn.commit.assert_called_once()
+        mock_cursor.close.assert_called_once()
+        mock_conn.close.assert_called_once()
+
+    @patch("etl.open_connection")
+    def test_load_pressure(self, mock_open_connection):
+            mock_conn = Mock()
+            mock_cursor = Mock()
+
+            mock_open_connection.return_value = mock_conn
+            mock_conn.cursor.return_value = mock_cursor
+
+            mock_transformed_data = {
+                "pressure": [
+                    ["06124", "2018-03-18T12:30:00Z", 50, ],
+                    ["06126", "2018-03-18T12:30:00Z", 70, ],
+
+                ]
+            }
+
+            load_pressure(mock_transformed_data)
+
+            mock_cursor.executemany.assert_called_once()
+
+            self.assertEqual(mock_cursor.executemany.call_args.args[1],
+                             mock_transformed_data["pressure"])
+
+            mock_conn.commit.assert_called_once()
+            mock_cursor.close.assert_called_once()
+            mock_conn.close.assert_called_once()
+
+
+
+#Mangler at teste:
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
