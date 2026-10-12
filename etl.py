@@ -33,15 +33,19 @@ def transform(extracted_data):
     if extracted_data == "Failed API response":
         return "Failed API response"
 
-    if 'features' not in extracted_data:
-        return "Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api"
-    data = extracted_data ### Det er lidt underligt at ændre navnet her, skal vi gøre det i toppen eller lade helt være?
+    #keys=extracted_data.keys()
+    
+    #if "FeatureCollection" !=keys[0] and "feature"!=keys[1] and "timeStamp"!=keys[2] and "numberReturned"!=keys[3] and "links" !=keys[4]:
+        #return "Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api"
+    
+    data = extracted_data["features"] ### Det er lidt underligt at ændre navnet her, skal vi gøre det i toppen eller lade helt være?
     transformed_data = {}
-    for i in range(len(data['features'])):
-        parameter_id = data['features'][i]['properties']['parameterId']
-        station_id = data['features'][i]['properties']['stationId']
-        date_and_time = data['features'][i]['properties']['observed']
-        value = data['features'][i]['properties']['value']
+    for i in data:
+        datain=i["properties"]
+        parameter_id = datain['parameterId']
+        station_id = datain['stationId']
+        date_and_time =datain['observed']
+        value =datain['value']
 
         if parameter_id is None:
             continue
@@ -52,13 +56,16 @@ def transform(extracted_data):
         if value is None:
             continue
 
-        if data['features'][i]['properties']['parameterId'] not in transformed_data.keys():
+        if parameter_id not in transformed_data.keys():
             transformed_data[parameter_id] = []
             transformed_data[parameter_id].append([station_id, date_and_time, value])
         else:
             transformed_data[parameter_id].append([station_id, date_and_time, value])
 
     return transformed_data
+
+transform()
+
 
 # print(transform(extract_from_dmi()).keys())
 # print(list(transform(extract_from_dmi()).keys()))# cursor = conn.cursor()
