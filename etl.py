@@ -20,11 +20,9 @@ def extract_from_dmi(datetime:str, limit:int, offset:int, bbox:str = "7,54,16,58
         return "Failed API response"
     extracted_data = response.json()
     return extracted_data
-### limit failer ikke hvis man tager højere end der er værdier
 
-
-temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
-extract_from_dmi(temp_datetime,100,0)
+# temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
+# extract_from_dmi(temp_datetime,100,0)
 
 #tilføj tjek for om indhentet data er korrekt
 def transform(extracted_data):
@@ -34,47 +32,53 @@ def transform(extracted_data):
     if extracted_data == "Failed API response":
         return "Failed API response"
 
+<<<<<<< HEAD
     #keys=extracted_data.keys()
     
     #if "FeatureCollection" !=keys[0] and "feature"!=keys[1] and "timeStamp"!=keys[2] and "numberReturned"!=keys[3] and "links" !=keys[4]:
         #return "Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api"
     
     data = extracted_data["features"] ### Det er lidt underligt at ændre navnet her, skal vi gøre det i toppen eller lade helt være?
+=======
+    if 'features' not in extracted_data:
+        return "Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api"
+    data = extracted_data['features'] ### Det er lidt underligt at ændre navnet her, skal vi gøre det i toppen eller lade helt være?
+>>>>>>> 044b9d12e2df5810ebd05b4360d274b5746b8db9
     transformed_data = {}
-    for i in range(len(data['features'])):
-        parameter_id = data['features'][i]['properties']['parameterId']
-        station_id = data['features'][i]['properties']['stationId']
-        date_and_time = data['features'][i]['properties']['observed']
-        value = data['features'][i]['properties']['value']
-
+    missing_parameter_id_count = 0
+    missing_value_count = 0
+    for i in range(len(data)):
+        parameter_id = data[i]['properties']['parameterId']
+        station_id = data[i]['properties']['stationId']
+        date_and_time = data[i]['properties']['observed']
+        value = data[i]['properties']['value']
 
         ### skal vi tjekke med is none eller en tom string? eller noget andet?
-        if parameter_id is None:
-            print("Missing parameter ID, observation skipped")
-            ## Burde man lave en counter, der fortæller hvor mange observation der er skipped+
-            ## kunne være noget i retningen af count += 1 for continue
+        if not parameter_id: ### skal vi tjekke for NaN
+            missing_parameter_id_count =+ 1
             continue
-        if value is None:
-            print("Missing value, observation skipped")
-            ### samme som under parameter_ID
+        if not value and value != 0.0: ### skal vi tjekke for NaN
+            missing_value_count =+ 1
             continue
-        if station_id is None: #snak med Rasmus
-            if date_and_time is None:
-                print("Parameter has no station_id or date/time, still saved to database.")
-                ### skal vi skrive noget andet end saved to database, da denne function kun transformerer ting
-            print("Parameter has no station_id, still staved to database.")
-        if date_and_time is None: #snak med Rasmus
-            print("Parameter has no date/time, still staved to database.")
+        if not station_id: #snak med Rasmus
+            if not date_and_time:
+                print("Parameter has no station_id or date/time, data entry still saved.")
+            print("Parameter has no station_id, data entry still saved.")
+        if not date_and_time: #snak med Rasmus
+            print("Parameter has no date/time, data entry still saved.")
 
-        if data['features'][i]['properties']['parameterId'] not in transformed_data.keys():
+        if data[i]['properties']['parameterId'] not in transformed_data.keys():
             transformed_data[parameter_id] = []
             transformed_data[parameter_id].append([station_id, date_and_time, value])
         else:
             transformed_data[parameter_id].append([station_id, date_and_time, value])
 
+    print(f"Missing parameter ID in {missing_parameter_id_count} observations")
+    print(f"Missing value in {missing_value_count} observations")
     return transformed_data
 
-# print(transform(extract_from_dmi(temp_datetime,10000,0 )))
+temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
+print(transform(extract_from_dmi(temp_datetime,2,0 )))
 # print(list(transform(extract_from_dmi()).keys()))
 
 def open_connection():
@@ -132,6 +136,13 @@ def load_pressure(transformed_data):
     close_connection(cursor, conn)
     return
 
+def etl(datetime:str, limit:int, offset:int, bbox:str = "7,54,16,58"):
+    raw_data = extract_from_dmi(datetime, limit, offset, bbox)
+    trans_data = transform(raw_data)
+    load_humidity(trans_data)
+    load_pressure(trans_data)
+    load_temp_dry(trans_data)
+    return
 
 #### NOT IN USE RIGHT NOW (DONT LOOK RASMUS)
 ### Det er farligt at skrive {key} ind i string da folk kan give en key som er database down
