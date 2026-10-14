@@ -1,5 +1,3 @@
-from cmath import nan
-
 import requests
 import psycopg
 
@@ -50,7 +48,7 @@ def transform(extracted_data):
         if not parameter_id: ### skal vi tjekke for NaN
             missing_parameter_id_count =+ 1
             continue
-        if not value and value != 0.0:
+        if not value and value != 0.0: ### skal vi tjekke for NaN
             missing_value_count =+ 1
             continue
         if not station_id: #snak med Rasmus
@@ -66,8 +64,8 @@ def transform(extracted_data):
         else:
             transformed_data[parameter_id].append([station_id, date_and_time, value])
 
-    # print(f"Missing parameter ID in {missing_parameter_id_count} observations")
-    # print(f"Missing value in {missing_value_count} observations")
+    print(f"Missing parameter ID in {missing_parameter_id_count} observations")
+    print(f"Missing value in {missing_value_count} observations")
     return transformed_data
 
 temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
