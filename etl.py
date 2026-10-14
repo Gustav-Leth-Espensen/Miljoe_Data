@@ -21,8 +21,8 @@ def extract_from_dmi(datetime:str, limit:int, offset:int, bbox:str = "7,54,16,58
     extracted_data = response.json()
     return extracted_data
 
-#temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
-#print(extract_from_dmi(temp_datetime,2,0))
+# temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
+# extract_from_dmi(temp_datetime,100,0)
 
 #tilføj tjek for om indhentet data er korrekt
 def transform(extracted_data):
@@ -34,33 +34,19 @@ def transform(extracted_data):
 
     if "features" not in extracted_data.keys():
         return "Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api"
-    #keys=extracted_data.keys()
-    #if "FeatureCollection" !=keys[0] and "feature"!=keys[1] and "timeStamp"!=keys[2] and "numberReturned"!=keys[3] and "links" !=keys[4]:
-        #return "Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api"
-    
     data = extracted_data['features'] ### Det er lidt underligt at ændre navnet her, skal vi gøre det i toppen eller lade helt være?
-    transformed_data={}
-    missing_parameter_id_count = 0
-    missing_value_count = 0
-    for i in data:
-        datain=i["properties"]
-        parameter_id = datain['parameterId']
-        station_id = datain['stationId']
-        date_and_time =datain['observed']
-        value =datain['value']
+    transformed_data = {}
 
-        if not parameter_id: ### skal vi tjekke for NaN
-            missing_parameter_id_count =+ 1
-            continue
-        if not value and value != 0.0: ### skal vi tjekke for NaN
-            missing_value_count =+ 1
-            continue
-        if not station_id: 
-            print("Parameter has no station_id, data entry still saved.")#snak med Rasmus
-        if not date_and_time:
-            print("Parameter has no station_id or date/time, data entry still saved.")
-        if not date_and_time: #snak med Rasmus
-            print("Parameter has no date/time, data entry still saved.")
+    for i in data:
+        data_in=i["properties"]
+        parameter_id = data_in['parameterId']
+        station_id = data_in['stationId']
+        date_and_time =data_in['observed']
+        value =data_in['value']
+
+        ### skal vi tjekke med is none eller en tom string? eller noget andet?
+        if not parameter_id or not station_id or not date_and_time or (not value and value != 0):
+            return "BITCHES"
 
         if parameter_id not in transformed_data.keys():
             transformed_data[parameter_id] = []
@@ -68,9 +54,13 @@ def transform(extracted_data):
         else:
             transformed_data[parameter_id].append([station_id, date_and_time, value])
 
-    print(f"Missing parameter ID in {missing_parameter_id_count} observations")
-    print(f"Missing value in {missing_value_count} observations")
     return transformed_data
+
+temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
+print(transform(extract_from_dmi(temp_datetime,400000,0)))
+
+# print(transform(extract_from_dmi(temp_datetime,2,0 )))
+# print(list(transform(extract_from_dmi()).keys()))
 
 def open_connection():
     conn = psycopg.connect(
@@ -127,13 +117,6 @@ def load_pressure(transformed_data):
     close_connection(cursor, conn)
     return
 
-def etl(datetime:str, limit:int, offset:int, bbox:str = "7,54,16,58"):
-    raw_data = extract_from_dmi(datetime, limit, offset, bbox)
-    trans_data = transform(raw_data)
-    load_humidity(trans_data)
-    load_pressure(trans_data)
-    load_temp_dry(trans_data)
-    return
 
 #### NOT IN USE RIGHT NOW (DONT LOOK RASMUS)
 ### Det er farligt at skrive {key} ind i string da folk kan give en key som er database down
