@@ -1,5 +1,4 @@
 import unittest
-from unittest.mock import patch
 from unittest.mock import patch, Mock
 from etl import transform, extract_from_dmi, open_connection, load_humidity, load_pressure, load_temp_dry, close_connection
 
@@ -50,13 +49,91 @@ class TestTransformer(unittest.TestCase):
         )
         return
 
+    def test_continue_no_parameter(self):
+        extracted_data = {
+            "features": [
+                {
+                    "properties": {
+                        "parameterId": "",
+                        "stationId": "06124",
+                        "observed": "2018-03-18T12:30:00Z",
+                        "value": 80
+                    }
+                },
+
+            ]
+        }
+
+        result = transform(extracted_data)
+        self.assertEqual(result,{})
+        return
+
+
+    def test_continue_no_value(self):
+        extracted_data = {
+            "features": [
+                {
+                    "properties": {
+                        "parameterId": "humidity",
+                        "stationId": "06124",
+                        "observed": "2018-03-18T12:30:00Z",
+                        "value": ""
+                    }
+                },
+
+            ]
+        }
+
+        result = transform(extracted_data)
+        self.assertEqual(result,{})
+        return
+
+    def test_continue_no_stationId(self):
+        extracted_data = {
+            "features": [
+                {
+                    "properties": {
+                        "parameterId": "humidity",
+                        "stationId": "",
+                        "observed": "2018-03-18T12:30:00Z",
+                        "value": 0.0
+                    }
+                },
+
+            ]
+        }
+
+        result = transform(extracted_data)
+        self.assertEqual(result["humidity"][0], ['',"2018-03-18T12:30:00Z",0])
+        return
+
+    def test_continue_no_observed_time(self):
+        extracted_data = {
+            "features": [
+                {
+                    "properties": {
+                        "parameterId": "humidity",
+                        "stationId": "06124",
+                        "observed": "",
+                        "value": 0.0
+                    }
+                },
+
+            ]
+        }
+
+        result = transform(extracted_data)
+        self.assertEqual(result["humidity"][0], ["06124",'',0])
+        return
+
+
     def test_standard_input(self):
         one_observation = {'type': 'FeatureCollection', 'features': [{'type': 'Feature', 'id': '2b55028a-aa90-6af2-3692-3a0855de24eb',
                                                         'geometry': {'type': 'Point',
                                                                      'coordinates': [10.1074, 57.5705]},
                                                         'properties': {'parameterId': 'precip_dur_past10min',
                                                                        'created': '2025-08-11T10:06:24.225346Z',
-                                                                       'value': 0.0, 'observed': '2018-03-18T12:30:00Z',
+                                                                       'value': 0, 'observed': '2018-03-18T12:30:00Z',
                                                                        'stationId': '05005'}}],
              'timeStamp': '2026-10-08T08:50:31Z', 'numberReturned': 1, 'links': [{
                                                                                      'href': 'https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00%3A00%3A00Z%2F2018-03-18T12%3A31%3A12Z&limit=1&offset=0&bbox=7%2C54%2C16%2C58',
