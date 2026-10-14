@@ -6,7 +6,7 @@ import psycopg
 ### limit; set number of observation up to 300.000
 ### offset; makes observations start from that number, needs to be less than total observations left in dataset
 ### bbox; is area measured, standard set to Denmark
-def extract_from_dmi(datetime:str="2018-02-12T00:00:00Z/2018-03-18T12:31:12Z", limit:int=1000, offset:int=0, bbox:str = "7,54,16,58"):
+def extract_from_dmi(datetime:str, limit:int, offset:int, bbox:str = "7,54,16,58"):
     url = "https://opendataapi.dmi.dk/v2/metObs/collections/observation/items"
     dmi_parameters = {
         "datetime": datetime,
@@ -20,10 +20,11 @@ def extract_from_dmi(datetime:str="2018-02-12T00:00:00Z/2018-03-18T12:31:12Z", l
         return "Failed API response"
     extracted_data = response.json()
     return extracted_data
+### limit failer ikke hvis man tager højere end der er værdier
 
-#
-# temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
-# print(extract_from_dmi(temp_datetime,100,100000 ))
+
+temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
+extract_from_dmi(temp_datetime,100,0)
 
 #tilføj tjek for om indhentet data er korrekt
 def transform(extracted_data):
@@ -40,23 +41,32 @@ def transform(extracted_data):
     
     data = extracted_data["features"] ### Det er lidt underligt at ændre navnet her, skal vi gøre det i toppen eller lade helt være?
     transformed_data = {}
-    for i in data:
-        datain=i["properties"]
-        parameter_id = datain['parameterId']
-        station_id = datain['stationId']
-        date_and_time =datain['observed']
-        value =datain['value']
+    for i in range(len(data['features'])):
+        parameter_id = data['features'][i]['properties']['parameterId']
+        station_id = data['features'][i]['properties']['stationId']
+        date_and_time = data['features'][i]['properties']['observed']
+        value = data['features'][i]['properties']['value']
 
+
+        ### skal vi tjekke med is none eller en tom string? eller noget andet?
         if parameter_id is None:
-            continue
-        if station_id is None:#snak med Rasmus
-            continue
-        if date_and_time is None: #snak med Rasmus
+            print("Missing parameter ID, observation skipped")
+            ## Burde man lave en counter, der fortæller hvor mange observation der er skipped+
+            ## kunne være noget i retningen af count += 1 for continue
             continue
         if value is None:
+            print("Missing value, observation skipped")
+            ### samme som under parameter_ID
             continue
+        if station_id is None: #snak med Rasmus
+            if date_and_time is None:
+                print("Parameter has no station_id or date/time, still saved to database.")
+                ### skal vi skrive noget andet end saved to database, da denne function kun transformerer ting
+            print("Parameter has no station_id, still staved to database.")
+        if date_and_time is None: #snak med Rasmus
+            print("Parameter has no date/time, still staved to database.")
 
-        if parameter_id not in transformed_data.keys():
+        if data['features'][i]['properties']['parameterId'] not in transformed_data.keys():
             transformed_data[parameter_id] = []
             transformed_data[parameter_id].append([station_id, date_and_time, value])
         else:
@@ -64,11 +74,8 @@ def transform(extracted_data):
 
     return transformed_data
 
-transform()
-
-
-# print(transform(extract_from_dmi()).keys())
-# print(list(transform(extract_from_dmi()).keys()))# cursor = conn.cursor()
+# print(transform(extract_from_dmi(temp_datetime,10000,0 )))
+# print(list(transform(extract_from_dmi()).keys()))
 
 def open_connection():
     conn = psycopg.connect(

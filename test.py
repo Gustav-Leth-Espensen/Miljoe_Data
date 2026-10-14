@@ -269,6 +269,13 @@ class TestLoad(unittest.TestCase):
         self.assertEqual(mock_cursor.executemany.call_args.args[1],
             mock_transformed_data["humidity"]) #
 
+        self.assertEqual(mock_cursor.executemany.call_args.args[0],
+                         """
+                   INSERT INTO humidity(station_id, observed_time, percent_humidity)
+                   VALUES(%s, %s, %s);
+                   """) #Antallet af mellemrum er vigtigt, do not touch!!
+
+
         mock_conn.commit.assert_called_once()
         mock_cursor.close.assert_called_once()
         mock_conn.close.assert_called_once()
