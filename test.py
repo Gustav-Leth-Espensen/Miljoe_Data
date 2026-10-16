@@ -49,6 +49,32 @@ class TestTransformer(unittest.TestCase):
         )
         return
 
+    def test_value_0(self):
+        extracted_data = {
+            "features": [
+                {
+                    "properties": {
+                        "parameterId": "humidity",
+                        "stationId": "06124",
+                        "observed": "2018-03-18T12:30:00Z",
+                        "value": 0
+                    }
+                },
+
+            ]
+        }
+
+        result = transform(extracted_data)
+        self.assertEqual(result["humidity"][0], [
+            "06124",
+            "2018-03-18T12:30:00Z",
+            0
+        ]
+        )
+        return
+
+
+
     def test_continue_no_parameter(self):
         extracted_data = {
             "features": [
@@ -63,10 +89,11 @@ class TestTransformer(unittest.TestCase):
 
             ]
         }
-
-        result = transform(extracted_data)
-        self.assertEqual(result,"BITCHES")
+        with self.assertRaises(ValueError) as context:
+            transform(extracted_data)
+        self.assertIn("One of parameters not found.", str(context.exception))
         return
+
 
 
     def test_continue_no_value(self):
@@ -84,8 +111,9 @@ class TestTransformer(unittest.TestCase):
             ]
         }
 
-        result = transform(extracted_data)
-        self.assertEqual(result,"BITCHES")
+        with self.assertRaises(ValueError) as context:
+            transform(extracted_data)
+        self.assertIn("One of parameters not found.", str(context.exception))
         return
 
     def test_continue_no_stationId(self):
@@ -103,8 +131,9 @@ class TestTransformer(unittest.TestCase):
             ]
         }
 
-        result = transform(extracted_data)
-        self.assertEqual(result, "BITCHES")
+        with self.assertRaises(ValueError) as context:
+            transform(extracted_data)
+        self.assertIn("One of parameters not found.", str(context.exception))
         return
 
     def test_continue_no_observed_time(self):
@@ -122,12 +151,10 @@ class TestTransformer(unittest.TestCase):
             ]
         }
 
-        result = transform(extracted_data)
-        self.assertEqual(result, "BITCHES")
+        with self.assertRaises(ValueError) as context:
+            transform(extracted_data)
+        self.assertIn("One of parameters not found.", str(context.exception))
         return
-
-
-
 
 
     def test_standard_input(self):
@@ -179,10 +206,14 @@ class TestTransformer(unittest.TestCase):
         test_dict = {"greeting": "Hello, world!"}
         empty_dict = {}
 
-        self.assertEqual(transform(test_dict), "Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api")
-        self.assertEqual(transform(empty_dict), "This is an empty dictionary")
-        return
+        with self.assertRaises(AttributeError) as context:
+            transform(test_dict)
+        self.assertIn("Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api", str(context.exception))
 
+        with self.assertRaises(ValueError) as context:
+            transform(empty_dict)
+        self.assertIn("Trying to transform an empty dictionary.", str(context.exception))
+        return
 
     def test_transform_empty_data(self):
         extracted_data = {

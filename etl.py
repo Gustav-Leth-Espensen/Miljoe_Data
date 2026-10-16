@@ -26,13 +26,14 @@ def extract_from_dmi(datetime:str, limit:int, offset:int, bbox:str = "7,54,16,58
 # temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
 # extract_from_dmi(temp_datetime,400000,0)
 
-#tilføj tjek for om indhentet data er korrekt
+### tilføj tjek for om indhentet data er korrekt
+### skal vi gemme coordinater
 def transform(extracted_data):
     if extracted_data == {}:
-        return "This is an empty dictionary"
+        raise ValueError("Trying to transform an empty dictionary.")
 
-    if "features" not in extracted_data.keys():
-        return "Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api"
+    if "features" not in extracted_data.keys(): ###Tjekke for mere
+        raise AttributeError("Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api")
     data = extracted_data['features'] ### Det er lidt underligt at ændre navnet her, skal vi gøre det i toppen eller lade helt være?
     transformed_data = {}
 
@@ -43,9 +44,8 @@ def transform(extracted_data):
         date_and_time =data_in['observed']
         value =data_in['value']
 
-        ### skal vi tjekke med is none eller en tom string? eller noget andet?
         if not parameter_id or not station_id or not date_and_time or (not value and value != 0):
-            return "BITCHES"
+            raise ValueError("One of parameters not found.")
 
         if parameter_id not in transformed_data.keys():
             transformed_data[parameter_id] = []
