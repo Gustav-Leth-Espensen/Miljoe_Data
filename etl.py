@@ -13,24 +13,23 @@ def extract_from_dmi(datetime:str, limit:int, offset:int, bbox:str = "7,54,16,58
         "limit": limit,
         "offset": offset,
         "bbox": bbox
+        ### "paramterid":
+        ### "stationsid":
     }
 
     response = requests.get(url, params=dmi_parameters)
     if not response.ok:  ### Returns false if response error is 400+
-        return "Failed API response"
+        raise ValueError("Input in extract outside of API scope.")
     extracted_data = response.json()
     return extracted_data
 
 # temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
-# extract_from_dmi(temp_datetime,100,0)
+# extract_from_dmi(temp_datetime,400000,0)
 
 #tilføj tjek for om indhentet data er korrekt
 def transform(extracted_data):
     if extracted_data == {}:
         return "This is an empty dictionary"
-
-    if extracted_data == "Failed API response":
-        return "Failed API response"
 
     if "features" not in extracted_data.keys():
         return "Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api"
@@ -56,8 +55,8 @@ def transform(extracted_data):
 
     return transformed_data
 
-temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
-print(transform(extract_from_dmi(temp_datetime,400000,0)))
+# temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
+# print(transform(extract_from_dmi(temp_datetime,10,0)))
 
 # print(transform(extract_from_dmi(temp_datetime,2,0 )))
 # print(list(transform(extract_from_dmi()).keys()))
@@ -88,7 +87,6 @@ def load_humidity(transformed_data):
     return
 
 
-#
 def load_temp_dry(transformed_data):
     conn = open_connection()
     cursor = conn.cursor()
@@ -139,8 +137,9 @@ def load_pressure(transformed_data):
 
 #### NOT IN USE RIGHT NOW (DONT LOOK RASMUS)
 #### TRANFORMS DATA INTO DICT IN DICT IN DICT
-# def transform(extracted_data):
-#     data = extract_from_dmi()
+# def transform1():
+#     temp_datetime = "2018-02-12T01:00:00Z/2018-02-12T01:00:00Z"
+#     data = extract_from_dmi(temp_datetime,10,0)
 #     outer_dict = {}
 #
 #     for i in range(len(data['features'])):
