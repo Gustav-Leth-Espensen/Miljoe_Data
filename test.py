@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, Mock
 from etl import transform, extract_from_dmi, open_connection, load_humidity, load_pressure, load_temp_dry, close_connection
-
+import os
 
 class TestTransformer(unittest.TestCase):
 
@@ -304,9 +304,9 @@ class TestLoad(unittest.TestCase):
         mock_connection = Mock()
         mock_connect.return_value = mock_connection #mock_connect return value skal være lig mock_connection
         result = open_connection()
-
+        url = str(os.getenv('DATABASE_URL'))
         mock_connect.assert_called_once_with(
-            "postgresql://app:test@db:5432/data_db") #kotrollerer at mock connect kaldes en gang med den definerede streng
+            url) #kotrollerer at mock connect kaldes en gang med den definerede streng
 
         self.assertEqual(result, mock_connection) #kontrollerer at open_connection returnerer det samme objekt som mock_connectiong
 

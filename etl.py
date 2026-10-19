@@ -1,5 +1,6 @@
 import requests
 import psycopg
+import os
 
 ### datetime; is the start and end dates with timezone
 ### in this format: "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
@@ -32,17 +33,22 @@ def transform(extracted_data):
     if extracted_data == {}:
         raise ValueError("Trying to transform an empty dictionary.")
 
-    if "features" not in extracted_data.keys(): ###Tjekke for mere
+    if "features" not in extracted_data.keys(): ###Tjekke for mere (geometri)
         raise AttributeError("Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api")
     data = extracted_data['features'] ### Det er lidt underligt at ændre navnet her, skal vi gøre det i toppen eller lade helt være?
     transformed_data = {}
 
-    for i in data:
-        data_in=i["properties"]
-        parameter_id = data_in['parameterId']
-        station_id = data_in['stationId']
-        date_and_time =data_in['observed']
-        value =data_in['value']
+    for raw_data in data:
+        data_prop=raw_data["properties"]
+        parameter_id = data_prop['parameterId']
+        station_id = data_prop['stationId']
+        date_and_time =data_prop['observed']
+        value =data_prop['value']
+
+        # data_geo = raw_data['geometry']
+        # coordinates = data_geo['coordinates']
+
+        
 
         if not parameter_id or not station_id or not date_and_time or (not value and value != 0):
             raise ValueError("One of parameters not found.")
@@ -62,8 +68,9 @@ def transform(extracted_data):
 # print(list(transform(extract_from_dmi()).keys()))
 
 def open_connection():
+    url = str(os.getenv('DATABASE_URL'))
     conn = psycopg.connect(
-        "postgresql://app:test@db:5432/data_db"
+        url
     )
     return conn
 
