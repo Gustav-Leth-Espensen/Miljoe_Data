@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, Mock
 import etl
 import os
-import stationID_to_database as Sta
+import meta_data as meta
 
 class Test_etl_Transformer(unittest.TestCase):
 
@@ -76,7 +76,7 @@ class Test_etl_Transformer(unittest.TestCase):
 
 
 
-    def test_continue_no_parameter(self):
+    def test_no_parameter(self):
         extracted_data = {
             "features": [
                 {
@@ -97,7 +97,7 @@ class Test_etl_Transformer(unittest.TestCase):
 
 
 
-    def test_continue_no_value(self):
+    def test_no_value(self):
         extracted_data = {
             "features": [
                 {
@@ -117,7 +117,7 @@ class Test_etl_Transformer(unittest.TestCase):
         self.assertIn("One of parameters not found.", str(context.exception))
         return
 
-    def test_continue_no_stationId(self):
+    def test_no_stationId(self):
         extracted_data = {
             "features": [
                 {
@@ -137,7 +137,7 @@ class Test_etl_Transformer(unittest.TestCase):
         self.assertIn("One of parameters not found.", str(context.exception))
         return
 
-    def test_continue_no_observed_time(self):
+    def test_no_observed_time(self):
         extracted_data = {
             "features": [
                 {
@@ -425,13 +425,13 @@ class Test_etl_Load(unittest.TestCase):
 class Test_meta_extract(unittest.TestCase):
     def test_extract_bbox(self):
         with self.assertRaises(ValueError) as context:
-            Sta.extract_meta_data(bbox = "10000, 12, 02, 15")
+            meta.extract_meta_data(bbox = "10000, 12, 02, 15")
         self.assertIn("Input in extract outside of API scope.", str(context.exception))
         return
 
 
 
-    @patch("stationID_to_database.requests.get") #erstatter request.get med en mock
+    @patch("meta_data.requests.get") #erstatter request.get med en mock
     def test_extract_meta_from_dmi(self, mock_get): #testen kontrollerer at det forventede json data returneres
         mock_get.return_value.ok = True #simulerer vellykket api kald
         mock_get.return_value.json.return_value = {"features": [
@@ -466,7 +466,7 @@ class Test_meta_extract(unittest.TestCase):
     }
     ]}
 
-        result = Sta.extract_meta_data()
+        result = meta.extract_meta_data()
 
         self.assertIn("features", result) #kontrollerer at features findes i resultatet
         self.assertEqual(len(result["features"]),1) #tjekker antallet af observationer
@@ -477,6 +477,224 @@ class Test_meta_extract(unittest.TestCase):
         coordinates = result["features"][0]["geometry"]["coordinates"]
         self.assertEqual(coordinates[0], 10.3305)
         self.assertEqual(coordinates[1], 55.4749)
+        return
+
+
+class Test_meta_transform(unittest.TestCase):
+    def test_clean_input(self):
+        data = {"features": [
+            {
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [10.3305, 55.4749]
+                },
+                "properties": {
+                    "name": "H. C. Andersen Airport",
+                    "stationId": "05408",
+                }
+            }
+        ]}
+        transformed_data = meta.transform_meta_data(data)
+        self.assertEqual(transformed_data, [["05408", "H. C. Andersen Airport", 10.3305, 55.4749]])
+        return
+
+    def test_multiple_inputs(self):
+        data = {"features": [
+            {
+              "geometry": {
+                "type": "Point",
+                "coordinates": [10.3305, 55.4749]
+              },
+              "properties": {
+                "name": "H. C. Andersen Airport",
+                "stationId": "05408",
+              }
+            },
+            {
+              "geometry": {
+                "type": "Point",
+                "coordinates": [8.1257, 56.4702]
+              },
+              "properties": {
+                "name": "FJALTRING",
+                "stationId": "24025",
+              }
+            }]}
+        transformed_data = meta.transform_meta_data(data)
+        self.assertEqual(transformed_data, [["05408", "H. C. Andersen Airport", 10.3305, 55.4749], ["24025", "FJALTRING", 8.1257, 56.4702]])
+        return
+
+    def test_standard_input(self):
+        data = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "id": "92ca41f8-904f-0aaf-816a-06eb57b21332",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [10.3305, 55.4749]
+              },
+              "properties": {
+                "owner": "DMI",
+                "country": "DNK",
+                "anemometerHeight": None,
+                "wmoCountryCode": None,
+                "operationFrom": "2018-11-26T00:00:00Z",
+                "parameterId": [
+                  "precip_dur_past10min",
+                  "precip_dur_past1h",
+                  "precip_past10min",
+                  "precip_past1h",
+                  "precip_past1min"
+                ],
+                "created": "2026-10-14T10:51:09Z",
+                "barometerHeight": None,
+                "validFrom": "2018-11-26T00:00:00Z",
+                "type": "Pluvio",
+                "stationHeight": 14,
+                "regionId": "6",
+                "name": "H. C. Andersen Airport",
+                "wmoStationId": None,
+                "operationTo": None,
+                "updated": None,
+                "stationId": "05408",
+                "validTo": "2025-10-30T11:31:59Z",
+                "status": "Active"
+              }
+            }
+          ],
+          "timeStamp": "2026-10-19T12:31:24Z",
+          "numberReturned": 1,
+          "links": [
+            {
+              "href": "https://opendataapi.dmi.dk/v2/metObs/collections/station/items?bbox=7,54,16,58&limit=1",
+              "rel": "self",
+              "type": "application/geo+json",
+              "title": "This document"
+            },
+            {
+              "href": "https://opendataapi.dmi.dk/v2/metObs/collections/station/items?bbox=7,54,16,58&limit=1&offset=1",
+              "rel": "next",
+              "type": "application/geo+json",
+              "title": "Next set of results"
+            }
+          ]
+        }
+        transformed_data = meta.transform_meta_data(data)
+        self.assertEqual(transformed_data, [["05408", "H. C. Andersen Airport", 10.3305, 55.4749]])
+        return
+
+    def test_missing_stationid(self):
+        data = {"features": [
+            {
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [10.3305, 55.4749]
+                },
+                "properties": {
+                    "name": "H. C. Andersen Airport",
+                    "stationId": "",
+                }
+            }
+        ]}
+        with self.assertRaises(ValueError) as context:
+            meta.transform_meta_data(data)
+        self.assertIn("One of parameters not found.", str(context.exception))
+        return
+
+    def test_missing_names(self):
+        data = {"features": [
+            {
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [10.3305, 55.4749]
+                },
+                "properties": {
+                    "name": "H. C. Andersen Airport",
+                    "stationId": "",
+                }
+            }
+        ]}
+        with self.assertRaises(ValueError) as context:
+            meta.transform_meta_data(data)
+        self.assertIn("One of parameters not found.", str(context.exception))
+        return
+
+    def test_missing_coordinate_long(self):
+        data = {"features": [
+            {
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": ["", 55.4749]
+                },
+                "properties": {
+                    "name": "H. C. Andersen Airport",
+                    "stationId": "",
+                }
+            }
+        ]}
+        with self.assertRaises(ValueError) as context:
+            meta.transform_meta_data(data)
+        self.assertIn("One of parameters not found.", str(context.exception))
+        return
+
+    def test_missing_coordinate_lat(self):
+        data = {"features": [
+            {
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [10.3305, ""]
+                },
+                "properties": {
+                    "name": "H. C. Andersen Airport",
+                    "stationId": "",
+                }
+            }
+        ]}
+        with self.assertRaises(ValueError) as context:
+            meta.transform_meta_data(data)
+        self.assertIn("One of parameters not found.", str(context.exception))
+        return
+
+    def test_coordinate_long_0(self):
+        data = {"features": [
+            {
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [0, 55.4749]
+                },
+                "properties": {
+                    "name": "H. C. Andersen Airport",
+                    "stationId": "05408",
+                }
+            }
+        ]}
+        transformed_data = meta.transform_meta_data(data)
+        self.assertEqual(transformed_data, [["05408", "H. C. Andersen Airport", 0, 55.4749]])
+        return
+
+    def test_coordinate_lat_0(self):
+        data = {"features": [
+            {
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [10.3305, 0]
+                },
+                "properties": {
+                    "name": "H. C. Andersen Airport",
+                    "stationId": "05408",
+                }
+            }
+        ]}
+        transformed_data = meta.transform_meta_data(data)
+        self.assertEqual(transformed_data, [["05408", "H. C. Andersen Airport", 10.3305, 0]])
+        return
+
+
+
+class Test_meta_load(unittest.TestCase):
+    def test_load(self):
         return
 
 

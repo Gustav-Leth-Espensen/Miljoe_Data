@@ -1,16 +1,18 @@
 import requests
 from etl import open_connection, close_connection
 
-def extract_meta_data(bbox:str = "7,54,16,58"):
+def extract_meta_data(bbox:str = "7,54,16,58", status = "Active"):
     url = "https://opendataapi.dmi.dk/v2/metObs/collections/station/items"
     dmi_parameters = {
-        "bbox": bbox
+        "bbox": bbox,
+        "status": status
     }
     response = requests.get(url, params=dmi_parameters)
     if not response.ok:  ### Returns false if response error is 400+
         raise ValueError("Input in extract outside of API scope.")
     extracted_metadata = response.json()
     return extracted_metadata
+
 
 def transform_meta_data(extracted_metadata):
     data = extracted_metadata['features']
@@ -25,7 +27,7 @@ def transform_meta_data(extracted_metadata):
         coordinates_long = data_geo['coordinates'][0]   #longitude in WGS84
         coordinates_lat = data_geo['coordinates'][1]  # latitude in WGS84
 
-        if not name or not station_id or not coordinates_long or not coordinates_lat:
+        if not name or not station_id or (not coordinates_long and coordinates_long != 0) or (not coordinates_lat and coordinates_lat != 0):
             raise ValueError("One of parameters not found.")
 
         if station_id not in transformed_data:
