@@ -1,3 +1,11 @@
+CREATE TABLE meta_data (
+    id SERIAL PRIMARY KEY,
+    station_id CHAR(5) NOT NULL,
+    name VARCHAR(50),
+    coordinates_longitude FLOAT NOT NULL,
+    coordinates_latitude FLOAT NOT NULL
+    );
+
 CREATE TABLE humidity (
     id SERIAL PRIMARY KEY,
     station_id CHAR(5) NOT NULL,
