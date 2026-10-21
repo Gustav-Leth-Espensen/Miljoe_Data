@@ -1,10 +1,10 @@
 import etl
-import meta_data as Sta
+import meta_data as meta
 
 if __name__ == '__main__':
-    meta_data = Sta.extract_meta_data()
-    meta_list = Sta.transform_meta_data(meta_data)
-    Sta.load_meta_data(meta_list)
+    meta_data = meta.extract_meta_data()
+    meta_list = meta.transform_meta_data(meta_data)
+    meta.load_meta_data(meta_list)
 
     date_time = "2018-02-12T01:00:00Z/2018-02-15T01:00:00Z"
     extracted_data_temp_dry = etl.extract_from_dmi(date_time, 100, 0, all_data=False)

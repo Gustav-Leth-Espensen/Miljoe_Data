@@ -611,8 +611,8 @@ class Test_meta_transform(unittest.TestCase):
                     "coordinates": [10.3305, 55.4749]
                 },
                 "properties": {
-                    "name": "H. C. Andersen Airport",
-                    "stationId": "",
+                    "name": "",
+                    "stationId": "05408",
                 }
             }
         ]}
@@ -630,7 +630,7 @@ class Test_meta_transform(unittest.TestCase):
                 },
                 "properties": {
                     "name": "H. C. Andersen Airport",
-                    "stationId": "",
+                    "stationId": "05408",
                 }
             }
         ]}
@@ -648,7 +648,7 @@ class Test_meta_transform(unittest.TestCase):
                 },
                 "properties": {
                     "name": "H. C. Andersen Airport",
-                    "stationId": "",
+                    "stationId": "05408",
                 }
             }
         ]}
@@ -694,8 +694,35 @@ class Test_meta_transform(unittest.TestCase):
 
 
 class Test_meta_load(unittest.TestCase):
-    def test_load(self):
+    @patch("meta_data.open_connection")
+    def test_load_meta_data(self, mock_open_connection): #kontrolere om meta data sendes til cursor
+        mock_conn = Mock() #mock objekt
+        mock_cursor = Mock() #mock object
+
+        mock_open_connection.return_value = mock_conn #mock_open_connection skal returnere mock_conn
+        mock_conn.cursor.return_value = mock_cursor #mock_conn.cursor skal returnere mock cursor
+
+        mock_transformed_data = ["05408", "H. C. Andersen Airport", 10.3305, 55.0522]
+
+        meta.load_meta_data(mock_transformed_data) #kører load med mock data
+
+        mock_cursor.executemany.assert_called_once()
+        #kontrollerer at de data der er sendt til executemany() er de samme som mock_transformed_data
+        # call_args tager argumenter som sidste mock blev kaldet med, her er det insert_query og args[1] er vores mock data
+        self.assertEqual(mock_cursor.executemany.call_args.args[1],mock_transformed_data)
+
+        self.assertEqual(mock_cursor.executemany.call_args.args[0],
+                         """
+                   INSERT INTO meta_data(station_id, name, coordinates_longitude, coordinates_latitude)
+                   VALUES(%s, %s, %s, %s);
+                   """) #Antallet af mellemrum er vigtigt, do not touch!!
+
+        mock_conn.commit.assert_called_once()
+        mock_cursor.close.assert_called_once()
+        mock_conn.close.assert_called_once()
         return
+
+
 
 
 #Mangler at teste:
