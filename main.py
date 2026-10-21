@@ -11,7 +11,7 @@ if __name__ == '__main__':
     transformed_data_temp_try = etl.transform(extracted_data_temp_dry)
     etl.load_temp_dry(transformed_data_temp_try)
 
-    extracted_data_humidity = etl.extract_from_dmi(date_time, 100, 0, all_data=False, parameter_id="humidity")
+    extracted_data_humidity = etl.extract_from_dmi(date_time, 10000, 0, all_data=False, parameter_id="humidity")
     transformed_data_humidity = etl.transform(extracted_data_humidity)
     etl.load_humidity(transformed_data_humidity)
 

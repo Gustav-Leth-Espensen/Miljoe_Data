@@ -18,7 +18,7 @@ psycopg-binary 3.3.6
 ## Executing program
 
 # Authors
-Gustav Leth-Espensen gustavle@hotmail.com
+Gustav Leth-Espensen
 Amalie Fransiska Heugert Mørck 
 Viktor Lønberg Bilde
 

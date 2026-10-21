@@ -40,9 +40,15 @@ def transform(extracted_data):
     if extracted_data == {}:
         raise ValueError("Trying to transform an empty dictionary.")
 
-    if "features" not in extracted_data.keys(): ###Tjekke for mere (geometri)
-        raise AttributeError("Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api")
-    data = extracted_data['features']
+    try:
+        data = extracted_data['features']
+    except KeyError:
+        raise KeyError(
+            "Called data from wrong API, try looking at https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api")
+
+    # if "features" not in extracted_data.keys(): ###Tjekke for mere (geometri)
+    #     raise AttributeError("Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api")
+    # data = extracted_data['features']
     transformed_data = {}
 
     for raw_data in data:
@@ -81,6 +87,21 @@ def close_connection(cursor,conn):
     conn.close()
 
 
+def load_temp_dry(transformed_data):
+    conn = open_connection()
+    cursor = conn.cursor()
+    data = transformed_data['temp_dry']
+    insert_query = """
+                   INSERT INTO temp_dry(station_id, observed_time, temperature)
+                   VALUES (%s, %s, %s);
+                   """
+
+    cursor.executemany(insert_query, data)
+    conn.commit()
+    close_connection(cursor, conn)
+    return
+
+
 def load_humidity(transformed_data):
     conn = open_connection()
     cursor = conn.cursor()
@@ -95,20 +116,6 @@ def load_humidity(transformed_data):
     close_connection(cursor,conn)
     return
 
-
-def load_temp_dry(transformed_data):
-    conn = open_connection()
-    cursor = conn.cursor()
-    data = transformed_data['temp_dry']
-    insert_query = """
-                   INSERT INTO temp_dry(station_id, observed_time, temperature)
-                   VALUES (%s, %s, %s);
-                   """
-
-    cursor.executemany(insert_query, data)
-    conn.commit()
-    close_connection(cursor, conn)
-    return
 
 def load_pressure(transformed_data):
     conn = open_connection()

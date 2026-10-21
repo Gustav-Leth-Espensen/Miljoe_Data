@@ -207,9 +207,9 @@ class Test_etl_Transformer(unittest.TestCase):
         test_dict = {"greeting": "Hello, world!"}
         empty_dict = {}
 
-        with self.assertRaises(AttributeError) as context:
+        with self.assertRaises(KeyError) as context:
             etl.transform(test_dict)
-        self.assertIn("Called data from wrong API, try looking at \n https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api", str(context.exception))
+        self.assertIn("Called data from wrong API, try looking at https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api", str(context.exception))
 
         with self.assertRaises(ValueError) as context:
             etl.transform(empty_dict)
@@ -384,7 +384,6 @@ class Test_etl_Load(unittest.TestCase):
         etl.load_temp_dry(mock_transformed_data)
 
         mock_cursor.executemany.assert_called_once()
-
         self.assertEqual(mock_cursor.executemany.call_args.args[1],
             mock_transformed_data["temp_dry"])
 
@@ -394,30 +393,30 @@ class Test_etl_Load(unittest.TestCase):
 
     @patch("etl.open_connection")
     def test_load_pressure(self, mock_open_connection):
-            mock_conn = Mock()
-            mock_cursor = Mock()
+        mock_conn = Mock()
+        mock_cursor = Mock()
 
-            mock_open_connection.return_value = mock_conn
-            mock_conn.cursor.return_value = mock_cursor
+        mock_open_connection.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
 
-            mock_transformed_data = {
-                "pressure": [
-                    ["06124", "2018-03-18T12:30:00Z", 50, ],
-                    ["06126", "2018-03-18T12:30:00Z", 70, ],
+        mock_transformed_data = {
+            "pressure": [
+                ["06124", "2018-03-18T12:30:00Z", 50, ],
+                ["06126", "2018-03-18T12:30:00Z", 70, ],
 
-                ]
-            }
+            ]
+        }
 
-            etl.load_pressure(mock_transformed_data)
+        etl.load_pressure(mock_transformed_data)
 
-            mock_cursor.executemany.assert_called_once()
+        mock_cursor.executemany.assert_called_once()
 
-            self.assertEqual(mock_cursor.executemany.call_args.args[1],
-                             mock_transformed_data["pressure"])
+        self.assertEqual(mock_cursor.executemany.call_args.args[1],
+                         mock_transformed_data["pressure"])
 
-            mock_conn.commit.assert_called_once()
-            mock_cursor.close.assert_called_once()
-            mock_conn.close.assert_called_once()
+        mock_conn.commit.assert_called_once()
+        mock_cursor.close.assert_called_once()
+        mock_conn.close.assert_called_once()
 
 
 
