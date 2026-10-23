@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI, Query, param_functions
 from sqlalchemy import create_engine, text
+from datetime import datetime, timezone
 
 
 app = FastAPI()
@@ -18,8 +19,8 @@ def stations(
 ):
     query = """ SELECT * 
                 FROM meta_data
-                WHERE (CAST(:stationid AS CHAR(5)) IS NULL OR station_id = CAST(:station_id AS CHAR(5)))
-                ORDER BY observed_time DESC
+                WHERE (CAST(:station_id AS CHAR(5)) IS NULL OR station_id = CAST(:station_id AS CHAR(5)))
+                ORDER BY id ASC 
                 LIMIT :limit"""
 
 
@@ -35,19 +36,25 @@ def stations(
 @app.get("/humidity")
 def humidity(
     station_id: str | None = None,
+    start_datetime: datetime | None = None,
+    end_datetime: datetime | None = None,
     limit: int = Query(default=1000, ge=1, le=1000),
 
 ):
     query = """ SELECT * 
                 FROM humidity 
                 WHERE (CAST(:station_id AS CHAR(5)) IS NULL OR station_id = CAST(:station_id AS CHAR(5)))
-                ORDER BY observed_time DESC
+                AND (CAST(:start_datetime AS TIMESTAMP WITH TIME ZONE) IS NULL OR observed_time >= CAST(:start_datetime AS TIMESTAMP WITH TIME ZONE)) 
+                AND (CAST(:end_datetime AS TIMESTAMP WITH TIME ZONE) IS NULL OR observed_time <= CAST(:end_datetime AS TIMESTAMP WITH TIME ZONE)) 
+                ORDER BY id ASC
                 LIMIT :limit
             """
     with engine.connect() as conn:
         result = conn.execute(
             text(query),
             { "station_id": station_id,
+                "start_datetime": start_datetime,
+                "end_datetime": end_datetime,
                 "limit": limit,
             },
             )
@@ -57,19 +64,25 @@ def humidity(
 @app.get("/temperature")
 def temperature(
     station_id: str | None = None,
+    start_datetime: datetime | None = None,
+    end_datetime: datetime | None = None,
     limit: int = Query(default=1000, ge=1, le=10000),
 
     ):
     query = """ SELECT * 
                 FROM temp_dry 
                 WHERE (CAST(:station_id AS CHAR(5)) IS NULL OR station_id = CAST(:station_id AS CHAR(5)))
-                ORDER BY observed_time DESC
+                AND (CAST(:start_datetime AS TIMESTAMP WITH TIME ZONE) IS NULL OR observed_time >= CAST(:start_datetime AS TIMESTAMP WITH TIME ZONE)) 
+                AND (CAST(:end_datetime AS TIMESTAMP WITH TIME ZONE) IS NULL OR observed_time <= CAST(:end_datetime AS TIMESTAMP WITH TIME ZONE)) 
+                ORDER BY id ASC
                 LIMIT :limit
             """
     with engine.connect() as conn:
         result = conn.execute(
             text(query),
             { "station_id": station_id,
+              "start_datetime": start_datetime,
+              "end_datetime": end_datetime,
                 "limit": limit,
             },
             )
@@ -78,20 +91,26 @@ def temperature(
 @app.get("/pressure")
 def pressure(
     station_id: str | None = None,
+    start_datetime: datetime | None = None,
+    end_datetime: datetime | None = None,
     limit: int = Query(default=1000, ge=1, le=1000),
     ):
 
     query = """ SELECT * 
                 FROM pressure
                 WHERE (CAST(:station_id AS CHAR(5)) IS NULL OR station_id = CAST(:station_id AS CHAR(5)))
-                ORDER BY observed_time DESC
+                AND (CAST(:start_datetime AS TIMESTAMP WITH TIME ZONE) IS NULL OR observed_time >= CAST(:start_datetime AS TIMESTAMP WITH TIME ZONE)) 
+                AND (CAST(:end_datetime AS TIMESTAMP WITH TIME ZONE) IS NULL OR observed_time <= CAST(:end_datetime AS TIMESTAMP WITH TIME ZONE)) 
+                ORDER BY id ASC
                 LIMIT :limit OR LIMIT = int
             """
     with engine.connect() as conn:
         result = conn.execute(
             text(query),
             { "station_id": station_id,
-                "limit": limit,
+                        "start_datetime": start_datetime,
+                        "end_datetime": end_datetime,
+                        "limit": limit,
             },
             )
         return [dict(row) for row in result.mappings()]
