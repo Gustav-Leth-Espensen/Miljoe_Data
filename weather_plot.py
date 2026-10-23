@@ -1,13 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import psycopg
-import dotenv
+import dotenvx
 import os
-import datetime
 
 
 def open_connection():
-    dotenv.load_dotenv()
+    dotenvx.load_dotenv()
     url = str(os.getenv('LOCAL_URL'))
     conn = psycopg.connect(
         url
@@ -66,15 +65,38 @@ def extract_pressure_from_db(station_id):
     data = np.asarray(data)
     return data
 
-a = extract_meta_data_from_db("06019")
-print(a)
+# a = extract_meta_data_from_db("06019")
+# print(a)
 
-# b = extract_humidity_from_db("06019")
-# print(b)
+def sort_data_after_date(data_from_own_database):
+    sortorder = np.argsort(data_from_own_database[:,2])
+    sorted_data = data_from_own_database[sortorder]
+    return sorted_data
 
-# c = extract_pressure_from_db("06030")
-# print(c)
+def create_plot_one_station(parameter_id ,station_id, marker):
+    if parameter_id == "temp_dry":
+        station_data = extract_temp_dry_from_db(station_id)
+    elif parameter_id == "humidity":
+        station_data = extract_humidity_from_db(station_id)
+    elif parameter_id == "pressure":
+        station_data = extract_pressure_from_db(station_id)
+    else:
+        return "Please choose valid parameter ID"
+    sorted_station_data = sort_data_after_date(station_data)
+    label_station_name = extract_meta_data_from_db(station_id)[0,1]
+    plt.plot(sorted_station_data[:, 2], sorted_station_data[:, 3], marker, label = label_station_name)
+    return f"Plot for {parameter_id} at station {station_id} ready."
 
-# d = extract_temp_dry_from_db("06019")
-# print(d)
+# create_plot_one_station("humidity","06019", 'r.')
+# create_plot_one_station("humidity","06030", 'b.')
+# plt.legend()
+# plt.title("Humidity")
+# plt.show()
+
+# a = extract_humidity_from_db("06019")
+a = extract_temp_dry_from_db("06019")
+# print(a[:,3])
+
+plt.hist(a[:,3], bins = 50)
+plt.show()
 

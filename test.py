@@ -244,14 +244,14 @@ class Test_etl_Extractor(unittest.TestCase):
         temp_datetime = "2050102!"
 
         with self.assertRaises(ValueError) as context:
-            etl.extract_from_dmi(temp_datetime,1,0 )
+            etl.extract_weather_data_from_dmi(temp_datetime,1,0, parameter_id="humidity" )
         self.assertIn("Input in extract outside of API scope.", str(context.exception))
         return
 
     def test_limit(self):
         temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
         with self.assertRaises(ValueError) as context:
-            etl.extract_from_dmi(temp_datetime,300001,0 )
+            etl.extract_weather_data_from_dmi(temp_datetime,300001,0,parameter_id="humidity" )
         self.assertIn("Input in extract outside of API scope.", str(context.exception))
 
         return
@@ -259,7 +259,7 @@ class Test_etl_Extractor(unittest.TestCase):
     def test_offset(self):
         temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
         with self.assertRaises(ValueError) as context:
-            etl.extract_from_dmi(temp_datetime,1,100000000 )
+            etl.extract_weather_data_from_dmi(temp_datetime,1,100000000,parameter_id="humidity" )
         self.assertIn("Input in extract outside of API scope.", str(context.exception))
         return
 
@@ -267,7 +267,7 @@ class Test_etl_Extractor(unittest.TestCase):
     def test_bbox(self):
         temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
         with self.assertRaises(ValueError) as context:
-            etl.extract_from_dmi(temp_datetime,100,0, bbox = "1000,12,1500,58" )
+            etl.extract_weather_data_from_dmi(temp_datetime,100,0, bbox = "1000,12,1500,58", parameter_id="humidity")
         self.assertIn("Input in extract outside of API scope.", str(context.exception))
         return
 
@@ -293,7 +293,7 @@ class Test_etl_Extractor(unittest.TestCase):
             ]
         }
 
-        result = etl.extract_from_dmi("2018-02-12T00:00:00Z/2018-03-18T12:30:00Z", 1000, 0)
+        result = etl.extract_weather_data_from_dmi("2018-02-12T00:00:00Z/2018-03-18T12:30:00Z", 1000, 0, parameter_id="humidity")
 
         self.assertIn("features", result) #kontrollerer at features findes i resultatet
         self.assertEqual(len(result["features"]),1) #tjekker antallet af observationer
