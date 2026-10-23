@@ -1,8 +1,6 @@
 import os
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, param_functions
 from sqlalchemy import create_engine, text
-from datetime import datetime
-from typing import Optional
 
 
 app = FastAPI()
