@@ -18,4 +18,4 @@ def extract_data_from_local_api():
     extracted_data = response.json()
     return extracted_data
 
-# print(extract_data_from_local_api())
+print(extract_data_from_local_api())

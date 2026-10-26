@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import patch, Mock
-import etl
+import etls.etl as etl
 import os
-import meta_data as meta
+import etls.meta_data as meta
 
 class Test_etl_Transformer(unittest.TestCase):
 
@@ -278,7 +278,7 @@ class Test_etl_Extractor(unittest.TestCase):
         self.assertIn("Input in extract outside of API scope.", str(context.exception))
         return
 
-    @patch("etl.requests.get") #erstatter request.get med en mock
+    @patch("etls.etl.requests.get") #erstatter request.get med en mock
     def test_extract_from_dmi(self, mock_get): #testen kontrollerer at det forventede json data returneres
         mock_get.return_value.ok = True #simulerer vellykket api kald
         mock_get.return_value.json.return_value = {"features": [
@@ -314,7 +314,7 @@ class Test_etl_Extractor(unittest.TestCase):
 
 class Test_etl_Load(unittest.TestCase):
 
-    @patch("etl.psycopg.connect")
+    @patch("etls.etl.psycopg.connect")
     def test_open_connection(self, mock_connect): #tester
 
         mock_connection = Mock()
@@ -336,7 +336,7 @@ class Test_etl_Load(unittest.TestCase):
         conn.close.assert_called_once()
         cursor.close.assert_called_once()
 
-    @patch("etl.open_connection")
+    @patch("etls.etl.open_connection")
     def test_load_humidity(self, mock_open_connection): #kontrolere om humidity data sendes til cursoren
         mock_conn = Mock() #mock objekt
         mock_cursor = Mock() #mock object
@@ -372,7 +372,7 @@ class Test_etl_Load(unittest.TestCase):
         mock_conn.close.assert_called_once()
 
 
-    @patch("etl.open_connection")
+    @patch("etls.etl.open_connection")
     def test_load_temp_dry(self, mock_open_connection):
         mock_conn = Mock()
         mock_cursor = Mock()
@@ -398,7 +398,7 @@ class Test_etl_Load(unittest.TestCase):
         mock_cursor.close.assert_called_once()
         mock_conn.close.assert_called_once()
 
-    @patch("etl.open_connection")
+    @patch("etls.etl.open_connection")
     def test_load_pressure(self, mock_open_connection):
         mock_conn = Mock()
         mock_cursor = Mock()
@@ -437,7 +437,7 @@ class Test_meta_extract(unittest.TestCase):
 
 
 
-    @patch("meta_data.requests.get") #erstatter request.get med en mock
+    @patch("etls.meta_data.requests.get") #erstatter request.get med en mock
     def test_extract_meta_from_dmi(self, mock_get): #testen kontrollerer at det forventede json data returneres
         mock_get.return_value.ok = True #simulerer vellykket api kald
         mock_get.return_value.json.return_value = {"features": [
@@ -486,7 +486,7 @@ class Test_meta_extract(unittest.TestCase):
         return
 
 
-class Test_meta_transform(unittest.TestCase):
+class TestMetaTransform(unittest.TestCase):
     def test_clean_input(self):
         data = {"features": [
             {
@@ -706,7 +706,7 @@ class Test_meta_transform(unittest.TestCase):
         return
 
 class Test_meta_load(unittest.TestCase):
-    @patch("meta_data.open_connection")
+    @patch("etls.meta_data.open_connection")
     def test_load_meta_data(self, mock_open_connection): #kontrolere om meta data sendes til cursor
         mock_conn = Mock() #mock objekt
         mock_cursor = Mock() #mock object

@@ -1,5 +1,5 @@
-import etl
-import meta_data as meta
+import etls.etl as etl
+import etls.meta_data as meta
 
 if __name__ == '__main__':
     meta_data = meta.extract_meta_data(limit = 2000, station_id="")

@@ -1,5 +1,5 @@
 import requests
-from etl import open_connection, close_connection
+from etls.etl import open_connection, close_connection
 
 def extract_meta_data(limit:int, station_id:str, bbox:str = "7,54,16,58", status = "Active"):
     url = "https://opendataapi.dmi.dk/v2/metObs/collections/station/items"
