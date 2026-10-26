@@ -7,17 +7,20 @@ import os
 ### limit; set number of observation up to 300.000
 ### offset; makes observations start from that number, needs to be less than total observations left in dataset
 ### bbox; is area measured, standard set to Denmark
-def extract_weather_data_from_dmi(datetime:str, limit:int, offset:int, bbox:str = "7,54,16,58", parameter_id:str = "temp_dry"):
+def extract_weather_data_from_dmi(datetime:str, limit:int, offset:int, parameter_id:str, bbox:str = "7,54,16,58"):
     url = "https://opendataapi.dmi.dk/v2/metObs/collections/observation/items"
-    dmi_parameters = {
-        "datetime": datetime,
-        "limit": limit,
-        "offset": offset,
-        "bbox": bbox,
-        "parameterId": parameter_id
-    }
+    url += f"?bbox={bbox}" #### DET ER VIGTIGT DER IKKE ER ET '&' FØR LIMIT
+    if datetime:
+        url += f"&datetime={datetime}"
+    if limit:
+        url += f"&limit={limit}"
+    if offset:
+        url += f"&offset={offset}"
+    if parameter_id:
+        url += f"&parameterId={parameter_id}"
 
-    response = requests.get(url, params=dmi_parameters)
+
+    response = requests.get(url)
     if not response.ok:  ### Returns false if response error is 400+
         raise ValueError("Input in extract outside of API scope.")
     extracted_data = response.json()
@@ -36,7 +39,7 @@ def transform(extracted_data):
         data = extracted_data['features']
     except KeyError:
         raise KeyError(
-            "Called data from wrong API, try looking at https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api")
+            "Missing key in data.")
 
     transformed_data = {}
 

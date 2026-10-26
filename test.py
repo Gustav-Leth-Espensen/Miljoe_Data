@@ -209,7 +209,7 @@ class Test_etl_Transformer(unittest.TestCase):
 
         with self.assertRaises(KeyError) as context:
             etl.transform(test_dict)
-        self.assertIn("Called data from wrong API, try looking at https://www.dmi.dk/friedata/dokumentation/meteorological-observation-api", str(context.exception))
+        self.assertIn("Missing key in data.", str(context.exception))
 
         with self.assertRaises(ValueError) as context:
             etl.transform(empty_dict)
@@ -244,14 +244,14 @@ class Test_etl_Extractor(unittest.TestCase):
         temp_datetime = "2050102!"
 
         with self.assertRaises(ValueError) as context:
-            etl.extract_weather_data_from_dmi(temp_datetime,1,0, parameter_id="humidity" )
+            etl.extract_weather_data_from_dmi(temp_datetime,1,0, "humidity" )
         self.assertIn("Input in extract outside of API scope.", str(context.exception))
         return
 
     def test_limit(self):
         temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
         with self.assertRaises(ValueError) as context:
-            etl.extract_weather_data_from_dmi(temp_datetime,300001,0,parameter_id="humidity" )
+            etl.extract_weather_data_from_dmi(temp_datetime,300001,0,"humidity" )
         self.assertIn("Input in extract outside of API scope.", str(context.exception))
 
         return
@@ -259,7 +259,14 @@ class Test_etl_Extractor(unittest.TestCase):
     def test_offset(self):
         temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
         with self.assertRaises(ValueError) as context:
-            etl.extract_weather_data_from_dmi(temp_datetime,1,100000000,parameter_id="humidity" )
+            etl.extract_weather_data_from_dmi(temp_datetime,1,100000000,"humidity" )
+        self.assertIn("Input in extract outside of API scope.", str(context.exception))
+        return
+
+    def test_parameter_id(self):
+        temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
+        with self.assertRaises(ValueError) as context:
+            etl.extract_weather_data_from_dmi(temp_datetime,1,0,"523flksatgq" )
         self.assertIn("Input in extract outside of API scope.", str(context.exception))
         return
 
@@ -267,7 +274,7 @@ class Test_etl_Extractor(unittest.TestCase):
     def test_bbox(self):
         temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
         with self.assertRaises(ValueError) as context:
-            etl.extract_weather_data_from_dmi(temp_datetime,100,0, bbox = "1000,12,1500,58", parameter_id="humidity")
+            etl.extract_weather_data_from_dmi(temp_datetime,100,0,"humidity", bbox = "1000,12,1500,58")
         self.assertIn("Input in extract outside of API scope.", str(context.exception))
         return
 
@@ -293,7 +300,7 @@ class Test_etl_Extractor(unittest.TestCase):
             ]
         }
 
-        result = etl.extract_weather_data_from_dmi("2018-02-12T00:00:00Z/2018-03-18T12:30:00Z", 1000, 0, parameter_id="humidity")
+        result = etl.extract_weather_data_from_dmi("2018-02-12T00:00:00Z/2018-03-18T12:30:00Z", 1000, 0, "humidity")
 
         self.assertIn("features", result) #kontrollerer at features findes i resultatet
         self.assertEqual(len(result["features"]),1) #tjekker antallet af observationer
@@ -351,7 +358,7 @@ class Test_etl_Load(unittest.TestCase):
         #kontrollerer at de data der er sendt til executemany() er de samme som mock_transformed_data
         # call_args tager argumenter som sidste mock blev kaldet med, her er det insert_query og args[1] er vores mock data
         self.assertEqual(mock_cursor.executemany.call_args.args[1],
-            mock_transformed_data["humidity"]) #
+            mock_transformed_data["humidity"])
 
         self.assertEqual(mock_cursor.executemany.call_args.args[0],
                          """
@@ -424,7 +431,7 @@ class Test_etl_Load(unittest.TestCase):
 class Test_meta_extract(unittest.TestCase):
     def test_extract_bbox(self):
         with self.assertRaises(ValueError) as context:
-            meta.extract_meta_data(bbox = "10000, 12, 02, 15")
+            meta.extract_meta_data(limit = 1, station_id="", bbox = "10000, 12, 02, 15")
         self.assertIn("Input in extract outside of API scope.", str(context.exception))
         return
 
@@ -465,7 +472,7 @@ class Test_meta_extract(unittest.TestCase):
     }
     ]}
 
-        result = meta.extract_meta_data()
+        result = meta.extract_meta_data(limit=10, station_id="")
 
         self.assertIn("features", result) #kontrollerer at features findes i resultatet
         self.assertEqual(len(result["features"]),1) #tjekker antallet af observationer
@@ -584,7 +591,7 @@ class Test_meta_transform(unittest.TestCase):
         self.assertEqual(transformed_data, [["05408", "H. C. Andersen Airport", 10.3305, 55.4749]])
         return
 
-    def test_missing_stationid(self):
+    def test_missing_station_id(self):
         data = {"features": [
             {
                 "geometry": {
@@ -690,7 +697,13 @@ class Test_meta_transform(unittest.TestCase):
         self.assertEqual(transformed_data, [["05408", "H. C. Andersen Airport", 10.3305, 0]])
         return
 
+    def test_wrong_input_meta_data(self):
+        test_dict = {"greeting": "Hello, world!"}
 
+        with self.assertRaises(KeyError) as context:
+            meta.transform_meta_data(test_dict)
+        self.assertIn("Missing key in data.", str(context.exception))
+        return
 
 class Test_meta_load(unittest.TestCase):
     @patch("meta_data.open_connection")

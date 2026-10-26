@@ -38,7 +38,7 @@ def humidity(
     station_id: str | None = None,
     start_datetime: datetime | None = None,
     end_datetime: datetime | None = None,
-    limit: int = Query(default=1000, ge=1, le=1000),
+    limit: int = Query(default=1000, ge=1, le=10000),
 
 ):
     query = """ SELECT * 
@@ -93,7 +93,7 @@ def pressure(
     station_id: str | None = None,
     start_datetime: datetime | None = None,
     end_datetime: datetime | None = None,
-    limit: int = Query(default=1000, ge=1, le=1000),
+    limit: int = Query(default=1000, ge=1, le=10000),
     ):
 
     query = """ SELECT * 

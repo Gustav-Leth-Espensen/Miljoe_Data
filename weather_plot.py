@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 from scipy import stats
 import requests
 
@@ -123,11 +122,61 @@ def create_plot_one_station(parameter_id ,station_id, measurement_type ,marker):
     return f"Plot for {parameter_id} at station {station_id} ready."
 
 create_plot_one_station("temperature","06019", "temperature", 'r.')
-create_plot_one_station("temperature","06030", "temperature", 'b.')
+# create_plot_one_station("temperature","06030", "temperature", 'b.')
 plt.legend()
-# plt.title("Humidity")
+plt.title("Temperature")
 plt.show()
 
+# raw_humidity_data =extract_weather_data_from_own_db("temperature", station_id="05009", start_data="", end_date="", limit=1000)
+# humidity_data = transform_data_from_own_db(raw_humidity_data, "temperature")
 
+# a = humidity_data[3]
 
+# print(stats.describe(a))
 
+raw_meta_data = extract_meta_data_from_own_api()
+test_meta_data = transform_meta_data_from_own_api(raw_meta_data)
+# print(test_meta_data[3])
+# print(test_meta_data[4])
+
+def find_index_ballerup_coordinater(coordinates_longitude_list, coordinates_latitude_list):
+    ballerup_coordinate_list = [12.36328, 55.73165]
+
+    longitude_diff_sq = (coordinates_longitude_list - ballerup_coordinate_list[0])**2
+    latitude_diff_sq = (coordinates_latitude_list - ballerup_coordinate_list[1])**2
+
+    total_diff_numeric = np.abs(longitude_diff_sq) + np.abs(latitude_diff_sq)
+
+    index = np.where(total_diff_numeric == np.min(total_diff_numeric))
+    return index
+
+balleruo_index = find_index_ballerup_coordinater(test_meta_data[3],test_meta_data[4])
+print(test_meta_data[2][balleruo_index[0][0]])
+
+def find_index_odense_coordinater(coordinates_longitude_list, coordinates_latitude_list):
+    odense_coordinate_list = [10.38831, 55.39594]
+
+    longitude_diff_sq = (coordinates_longitude_list - odense_coordinate_list[0])**2
+    latitude_diff_sq = (coordinates_latitude_list - odense_coordinate_list[1])**2
+
+    total_diff_numeric = np.abs(longitude_diff_sq) + np.abs(latitude_diff_sq)
+
+    index = np.where(total_diff_numeric == np.min(total_diff_numeric))
+    return index
+
+odense_index = find_index_odense_coordinater(test_meta_data[3],test_meta_data[4])
+print(test_meta_data[2][odense_index[0][0]])
+
+def find_index_aarhus_coordinater(coordinates_longitude_list, coordinates_latitude_list):
+    aarhus_coordinate_list = [10.21076, 56.15674]
+
+    longitude_diff_sq = (coordinates_longitude_list - aarhus_coordinate_list[0])**2
+    latitude_diff_sq = (coordinates_latitude_list - aarhus_coordinate_list[1])**2
+
+    total_diff_numeric = np.abs(longitude_diff_sq) + np.abs(latitude_diff_sq)
+
+    index = np.where(total_diff_numeric == np.min(total_diff_numeric))
+    return index
+
+aarhus_index = find_index_aarhus_coordinater(test_meta_data[3],test_meta_data[4])
+print(test_meta_data[2][aarhus_index[0][0]])
