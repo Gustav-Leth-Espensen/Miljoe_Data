@@ -17,11 +17,11 @@ def stations(
         station_id: str | None = None,
         limit: int = Query(default=1000, ge=1, le=10000),
 ):
-    query = (""" SELECT * 
-                FROM meta_data
-                WHERE (:station_id AS CHAR(5) IS NULL OR station_id = :station_id AS CHAR(5))
+    query = """ SELECT * 
+                FROM dmi_meta_data
+                WHERE (CAST(:station_id AS CHAR(5)) IS NULL OR station_id = CAST(:station_id AS CHAR(5)))
                 ORDER BY id ASC 
-                LIMIT :limit""")
+                LIMIT :limit"""
     with engine.connect() as conn:
         result = conn.execute(
             text(query),
@@ -70,7 +70,7 @@ def temperature(
 
     ):
     query = """ SELECT * 
-                FROM temp_dry 
+                FROM dmi_temp_dry 
                 WHERE (CAST(:station_id AS CHAR(5)) IS NULL OR station_id = CAST(:station_id AS CHAR(5)))
                 AND (CAST(:start_datetime AS TIMESTAMP WITH TIME ZONE) IS NULL OR observed_time >= CAST(:start_datetime AS TIMESTAMP WITH TIME ZONE)) 
                 AND (CAST(:end_datetime AS TIMESTAMP WITH TIME ZONE) IS NULL OR observed_time <= CAST(:end_datetime AS TIMESTAMP WITH TIME ZONE)) 
@@ -97,12 +97,12 @@ def pressure(
     ):
 
     query = """ SELECT * 
-                FROM pressure
+                FROM dmi_pressure
                 WHERE (CAST(:station_id AS CHAR(5)) IS NULL OR station_id = CAST(:station_id AS CHAR(5)))
                 AND (CAST(:start_datetime AS TIMESTAMP WITH TIME ZONE) IS NULL OR observed_time >= CAST(:start_datetime AS TIMESTAMP WITH TIME ZONE)) 
                 AND (CAST(:end_datetime AS TIMESTAMP WITH TIME ZONE) IS NULL OR observed_time <= CAST(:end_datetime AS TIMESTAMP WITH TIME ZONE)) 
                 ORDER BY id ASC
-                LIMIT :limit OR LIMIT = int
+                LIMIT :limit
             """
     with engine.connect() as conn:
         result = conn.execute(

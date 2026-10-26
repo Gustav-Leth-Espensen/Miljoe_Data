@@ -7,7 +7,8 @@ def extract_meta_data(limit:int, station_id:str, bbox:str = "7,54,16,58", status
     if limit:
         url += f"&limit={limit}"
     if station_id:
-        url += f"&station_id={station_id}"
+        url += f"&stationId={station_id}"
+
 
     response = requests.get(url)
     if not response.ok:  ### Returns false if response error is 400+
@@ -46,7 +47,7 @@ def load_meta_data(list_stations_id_name_coordinates):
     conn = open_connection()
     cursor = conn.cursor()
     insert_query = """
-                   INSERT INTO meta_data(station_id, name, coordinates_longitude, coordinates_latitude)
+                   INSERT INTO dmi_meta_data(station_id, name, coordinates_longitude, coordinates_latitude)
                    VALUES(%s, %s, %s, %s);
                    """
 

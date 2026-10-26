@@ -1,4 +1,4 @@
-CREATE TABLE meta_data (
+CREATE TABLE dmi_meta_data (
     id SERIAL PRIMARY KEY,
     station_id CHAR(5) NOT NULL,
     name VARCHAR(50),
@@ -6,23 +6,44 @@ CREATE TABLE meta_data (
     coordinates_latitude FLOAT NOT NULL
     );
 
-CREATE TABLE humidity (
+CREATE TABLE dmi_humidity (
     id SERIAL PRIMARY KEY,
     station_id CHAR(5) NOT NULL,
     observed_time TIMESTAMP WITH TIME ZONE,
     percent_humidity FLOAT NOT NULL
     );
 
-CREATE TABLE temp_dry (
+CREATE TABLE dmi_temp_dry (
     id SERIAL PRIMARY KEY,
     station_id CHAR(5) NOT NULL,
     observed_time TIMESTAMP WITH TIME ZONE,
-    temperature FLOAT NOT NULL
+    celsius FLOAT NOT NULL
     );
 
-CREATE TABLE pressure (
+CREATE TABLE dmi_pressure (
     id SERIAL PRIMARY KEY,
     station_id CHAR(5) NOT NULL,
     observed_time TIMESTAMP WITH TIME ZONE,
-    mbar FLOAT NOT NULL
+    kPa FLOAT NOT NULL
+    );
+
+CREATE TABLE local_pressure (
+    id SERIAL PRIMARY KEY,
+    station_id CHAR(5) NOT NULL,
+    observed_time TIMESTAMP WITH TIME ZONE,
+    pascal FLOAT NOT NULL
+    );
+
+CREATE TABLE local_temperature (
+    id SERIAL PRIMARY KEY,
+    station_id CHAR(5) NOT NULL,
+    observed_time TIMESTAMP WITH TIME ZONE,
+    celsius FLOAT NOT NULL
+    );
+
+CREATE TABLE local_CO2 (
+    id SERIAL PRIMARY KEY,
+    station_id CHAR(5) NOT NULL,
+    observed_time TIMESTAMP WITH TIME ZONE,
+    ppm FLOAT NOT NULL
     );

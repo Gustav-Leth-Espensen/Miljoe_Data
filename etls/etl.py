@@ -84,7 +84,7 @@ def load_temp_dry(transformed_data):
     cursor = conn.cursor()
     data = transformed_data['temp_dry']
     insert_query = """
-                   INSERT INTO temp_dry(station_id, observed_time, temperature)
+                   INSERT INTO dmi_temp_dry(station_id, observed_time, celsius)
                    VALUES (%s, %s, %s);
                    """
 
@@ -99,7 +99,7 @@ def load_humidity(transformed_data):
     cursor = conn.cursor()
     data = transformed_data['humidity']
     insert_query = """
-                   INSERT INTO humidity(station_id, observed_time, percent_humidity)
+                   INSERT INTO dmi_humidity(station_id, observed_time, percent_humidity)
                    VALUES(%s, %s, %s);
                    """
 
@@ -114,7 +114,7 @@ def load_pressure(transformed_data):
     cursor = conn.cursor()
     data = transformed_data['pressure']
     insert_query = """
-                   INSERT INTO pressure(station_id, observed_time, mbar)
+                   INSERT INTO dmi_pressure(station_id, observed_time, kPa)
                    VALUES (%s, %s, %s);
                    """
 
