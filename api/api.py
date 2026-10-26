@@ -31,7 +31,7 @@ def stations(
         )
         return [dict(row) for row in result.mappings()]
 
-# @app.get("/humidity")
+# @main_app.get("/humidity")
 # def humidity(
 #     station_id: str | None = None,
 #     start_datetime: datetime | None = None,

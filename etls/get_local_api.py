@@ -1,7 +1,7 @@
 import requests
 import os
 import dotenvx
-import json
+import etls.etl as etl
 
 def extract_data_from_local_api():
     dotenvx.load_dotenv()
@@ -27,9 +27,9 @@ def extract_data_from_local_api():
 def node_translater(json_data):
     #### FIND UD AF HVILKEN DER ER RIGTIG:
     #### json_data['observations']['nodeId']
-    ballerup_sensor ="6d437168-7432-470b-9cf4-08439d0127ad"
-    odsense_sensor = "ae6901bb-6703-4955-9d59-179c1ee5dae8"
-    aarhus_sensor = "2c47284d-777b-44f0-bdeb-3d442f6a31b1"
+    ballerup_sensor = "ae6901bb-6703-4955-9d59-179c1ee5dae8"
+    odense_sensor =  "2c47284d-777b-44f0-bdeb-3d442f6a31b1"
+    aarhus_sensor = "6d437168-7432-470b-9cf4-08439d0127ad"
     return
 
 def transform_local_data(json_data):
@@ -51,7 +51,21 @@ def transform_local_data(json_data):
 
 data = extract_data_from_local_api()
 transformed_data = transform_local_data(data)
-print(transformed_data)
+print(len(transformed_data))
+
+def load_local_data(transformed_local_data):
+    conn = etl.open_connection()
+    cursor = conn.cursor()
+    insert_query = """
+                   INSERT INTO local_pressure(station_id, observed_time, Pa)
+                   VALUES (%s, %s, %s);
+                   """
+
+    cursor.executemany(insert_query, transformed_local_data)
+    conn.commit()
+    etl.close_connection(cursor, conn)
+    return
+
 
 
 #### FUCK MED EGEN API AT

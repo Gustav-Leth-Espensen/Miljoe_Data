@@ -47,3 +47,4 @@ CREATE TABLE local_CO2 (
     observed_time TIMESTAMP WITH TIME ZONE,
     ppm FLOAT NOT NULL
     );
+

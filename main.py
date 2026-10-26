@@ -1,5 +1,7 @@
 import etls.etl as etl
 import etls.meta_data as meta
+# import etls.get_local_api as lapi
+
 
 if __name__ == '__main__':
     meta_data = meta.extract_meta_data(limit = 2000, station_id="")
@@ -19,4 +21,7 @@ if __name__ == '__main__':
     transformed_data_pressure = etl.transform(extracted_data_pressure)
     etl.load_pressure(transformed_data_pressure)
 
-
+    # local_data = lapi.extract_data_from_local_api()
+    # transformed_local_data = lapi.transform_local_data(local_data)
+    # lapi.load_local_data(transformed_local_data)
+    #
