@@ -362,7 +362,7 @@ class Test_etl_Load(unittest.TestCase):
 
         self.assertEqual(mock_cursor.executemany.call_args.args[0],
                          """
-                   INSERT INTO humidity(station_id, observed_time, percent_humidity)
+                   INSERT INTO dmi_humidity(station_id, observed_time, percent_humidity)
                    VALUES(%s, %s, %s);
                    """) #Antallet af mellemrum er vigtigt, do not touch!!
 
@@ -725,7 +725,7 @@ class Test_meta_load(unittest.TestCase):
 
         self.assertEqual(mock_cursor.executemany.call_args.args[0],
                          """
-                   INSERT INTO meta_data(station_id, name, coordinates_longitude, coordinates_latitude)
+                   INSERT INTO dmi_meta_data(station_id, name, coordinates_longitude, coordinates_latitude)
                    VALUES(%s, %s, %s, %s);
                    """) #Antallet af mellemrum er vigtigt, do not touch!!
 
