@@ -1,11 +1,9 @@
 import requests
 import os
-import dotenvx
 import etls.etl as etl
 
 def extract_data_from_local_api():
-    dotenvx.load_dotenv()
-    url = "https://herodot.spac.dk/api/v1/observations"
+    url = "https://herodot.spac.dk/api/v1/observations?limit=5000"
     aut_value = str(os.getenv('API_TOKEN'))
 
     request_header = {
@@ -19,53 +17,107 @@ def extract_data_from_local_api():
     extracted_data = response.json()
     return extracted_data
 
-# data = extract_data_from_local_api()
 
-# with open('data.json', 'w') as file:
-#     json.dump(data, file)
-
-def node_translater(json_data):
-    #### FIND UD AF HVILKEN DER ER RIGTIG:
-    #### json_data['observations']['nodeId']
-    ballerup_sensor = "ae6901bb-6703-4955-9d59-179c1ee5dae8"
-    odense_sensor =  "2c47284d-777b-44f0-bdeb-3d442f6a31b1"
-    aarhus_sensor = "6d437168-7432-470b-9cf4-08439d0127ad"
-    return
+def node_translater(node_id):
+    if node_id == "ae6901bb-6703-4955-9d59-179c1ee5dae8":
+        return "BAL01"
+    elif node_id == "2c47284d-777b-44f0-bdeb-3d442f6a31b1":
+        return "ODE01"
+    elif node_id == "6d437168-7432-470b-9cf4-08439d0127ad":
+        return "AAR01"
+    else:
+        raise ValueError("Node_id does not exist")
 
 def transform_local_data(json_data):
-    transformed_local_data = []
+    transformed_local_temp_data = []
+    transformed_local_humidity_data = []
+    transformed_local_pressure_data = []
+    transformed_local_co2_data = []
     data_dict = json_data['observations']
+
+    ##### observations ID er unikt
 
     for observation in data_dict:
         instrument_model = observation['instrumentModel']
         parameter_id = observation['sensor']
         timestamp = observation['timestamp']
         value = observation['value']
+        station_id = observation['nodeId']
+        personalized_id = node_translater(station_id)
 
-        # if not parameter_id or not instrument_model or not timestamp or (not value and value != 0):
-            # raise ValueError("One of parameters not found.")
+        if parameter_id == "temperature" or (parameter_id == "" and instrument_model == "DS18B20"):
+            transformed_local_temp_data.append([instrument_model, personalized_id, timestamp, value])
+        elif parameter_id == "humidity":
+            transformed_local_humidity_data.append([instrument_model, personalized_id, timestamp, value])
+        elif parameter_id == "pressure":
+            transformed_local_pressure_data.append([instrument_model, personalized_id, timestamp, value])
+        elif parameter_id == "co2_concentration":
+            transformed_local_co2_data.append([instrument_model, personalized_id, timestamp, value])
+        else:
+            raise KeyError("Error in data from local API")
 
-        transformed_local_data.append([instrument_model, parameter_id, timestamp, value])
 
-    return transformed_local_data
+    return transformed_local_temp_data, transformed_local_humidity_data, transformed_local_pressure_data, transformed_local_co2_data
 
-data = extract_data_from_local_api()
-transformed_data = transform_local_data(data)
-print(len(transformed_data))
+def load_local_meta_data():
+    return
 
-def load_local_data(transformed_local_data):
+# data = extract_data_from_local_api()
+# transformed_data = transform_local_data(data)
+# print(transformed_data[3])
+
+######### SKAL HAVE SKILT TING AD SÅ HVER PARAMTER CAN BRUGES I LOAD
+
+def load_local_temperature_data(transformed_local_data_temp):
     conn = etl.open_connection()
     cursor = conn.cursor()
     insert_query = """
-                   INSERT INTO local_pressure(station_id, observed_time, Pa)
-                   VALUES (%s, %s, %s);
+                   INSERT INTO local_temperature(instrument_model, station_id, observed_time, celsius)
+                   VALUES (%s, %s, %s, %s);
                    """
 
-    cursor.executemany(insert_query, transformed_local_data)
+    cursor.executemany(insert_query, transformed_local_data_temp)
     conn.commit()
     etl.close_connection(cursor, conn)
     return
 
+def load_local_humidity_data(transformed_local_data_humidity):
+    conn = etl.open_connection()
+    cursor = conn.cursor()
+    insert_query = """
+                   INSERT INTO local_humidity(instrument_model, station_id, observed_time, percent_humidity)
+                   VALUES (%s, %s, %s, %s);
+                   """
 
+    cursor.executemany(insert_query, transformed_local_data_humidity)
+    conn.commit()
+    etl.close_connection(cursor, conn)
+    return
 
-#### FUCK MED EGEN API AT
+def load_local_pressure_data(transformed_local_data_pressure):
+    conn = etl.open_connection()
+    cursor = conn.cursor()
+    insert_query = """
+                   INSERT INTO local_pressure(instrument_model, station_id, observed_time, pascal)
+                   VALUES (%s, %s, %s, %s);
+                   """
+
+    cursor.executemany(insert_query, transformed_local_data_pressure)
+    conn.commit()
+    etl.close_connection(cursor, conn)
+    return
+
+def load_local_co2_data(transformed_local_data_co2):
+    conn = etl.open_connection()
+    cursor = conn.cursor()
+    insert_query = """
+                   INSERT INTO local_CO2(instrument_model, station_id, observed_time, ppm)
+                   VALUES (%s, %s, %s, %s);
+                   """
+
+    cursor.executemany(insert_query, transformed_local_data_co2)
+    conn.commit()
+    etl.close_connection(cursor, conn)
+    return
+
+#### VI LEGEDE MED EGEN SENSOR 28.10.2026 08:30:00 ->

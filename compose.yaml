@@ -3,6 +3,7 @@ services:
     build: .
     environment:
       - DATABASE_URL=${DB_URL}
+      - API_TOKEN=${API_TOKEN}
     depends_on:
       db:
         condition: service_healthy

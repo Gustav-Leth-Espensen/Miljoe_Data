@@ -114,7 +114,7 @@ def load_pressure(transformed_data):
     cursor = conn.cursor()
     data = transformed_data['pressure']
     insert_query = """
-                   INSERT INTO dmi_pressure(station_id, observed_time, kPa)
+                   INSERT INTO dmi_pressure(station_id, observed_time, hPa)
                    VALUES (%s, %s, %s);
                    """
 

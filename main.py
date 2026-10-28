@@ -1,6 +1,6 @@
 import etls.etl as etl
 import etls.meta_data as meta
-# import etls.get_local_api as lapi
+import etls.get_local_api as lapi
 
 
 if __name__ == '__main__':
@@ -21,7 +21,10 @@ if __name__ == '__main__':
     transformed_data_pressure = etl.transform(extracted_data_pressure)
     etl.load_pressure(transformed_data_pressure)
 
-    # local_data = lapi.extract_data_from_local_api()
-    # transformed_local_data = lapi.transform_local_data(local_data)
-    # lapi.load_local_data(transformed_local_data)
-    #
+    local_data = lapi.extract_data_from_local_api()
+    transformed_local_data = lapi.transform_local_data(local_data)
+    lapi.load_local_temperature_data(transformed_local_data[0])
+    lapi.load_local_humidity_data(transformed_local_data[1])
+    lapi.load_local_pressure_data(transformed_local_data[2])
+    lapi.load_local_co2_data(transformed_local_data[3])
+
