@@ -49,15 +49,16 @@ def transform(extracted_data):
         station_id = data_prop['stationId']
         date_and_time =data_prop['observed']
         value =data_prop['value']
+        observation_id = raw_data['id']
 
         if not parameter_id or not station_id or not date_and_time or (not value and value != 0):
             raise ValueError("One of parameters not found.")
 
         if parameter_id not in transformed_data.keys():
             transformed_data[parameter_id] = []
-            transformed_data[parameter_id].append([station_id, date_and_time, value])
+            transformed_data[parameter_id].append([observation_id, station_id, date_and_time, value])
         else:
-            transformed_data[parameter_id].append([station_id, date_and_time, value])
+            transformed_data[parameter_id].append([observation_id, station_id, date_and_time, value])
 
     return transformed_data
 
@@ -84,8 +85,9 @@ def load_temp_dry(transformed_data):
     cursor = conn.cursor()
     data = transformed_data['temp_dry']
     insert_query = """
-                   INSERT INTO dmi_temp_dry(station_id, observed_time, celsius)
-                   VALUES (%s, %s, %s);
+                   INSERT INTO dmi_temp_dry(observation_id, station_id, observed_time, celsius)
+                   VALUES (%s, %s, %s, %s)
+                   ON CONFLICT (observation_id) DO NOTHING;
                    """
 
     cursor.executemany(insert_query, data)
@@ -99,8 +101,9 @@ def load_humidity(transformed_data):
     cursor = conn.cursor()
     data = transformed_data['humidity']
     insert_query = """
-                   INSERT INTO dmi_humidity(station_id, observed_time, percent_humidity)
-                   VALUES(%s, %s, %s);
+                   INSERT INTO dmi_humidity(observation_id, station_id, observed_time, percent_humidity)
+                   VALUES(%s, %s, %s, %s)
+                   ON CONFLICT (observation_id) DO NOTHING;
                    """
 
     cursor.executemany(insert_query,data)
@@ -114,8 +117,9 @@ def load_pressure(transformed_data):
     cursor = conn.cursor()
     data = transformed_data['pressure']
     insert_query = """
-                   INSERT INTO dmi_pressure(station_id, observed_time, hPa)
-                   VALUES (%s, %s, %s);
+                   INSERT INTO dmi_pressure(observation_id, station_id, observed_time, hPa)
+                   VALUES (%s, %s, %s, %s)
+                   ON CONFLICT (observation_id) DO NOTHING;
                    """
 
     cursor.executemany(insert_query, data)

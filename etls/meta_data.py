@@ -43,11 +43,13 @@ def transform_meta_data(extracted_metadata):
 
     return list_stations_id_name_coordinates
 
+
+
 def load_meta_data(list_stations_id_name_coordinates):
     conn = open_connection()
     cursor = conn.cursor()
     insert_query = """
-                   INSERT INTO dmi_meta_data(station_id, name, coordinates_longitude, coordinates_latitude)
+                   INSERT INTO meta_data(station_id, name, coordinates_longitude, coordinates_latitude)
                    VALUES(%s, %s, %s, %s);
                    """
 

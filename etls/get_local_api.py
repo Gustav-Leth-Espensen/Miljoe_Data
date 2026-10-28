@@ -59,15 +59,16 @@ def transform_local_data(json_data):
         value = observation['value']
         station_id = observation['nodeId']
         personalized_id = node_translater(station_id)
+        observation_id = observation['observationId']
 
         if parameter_id == "temperature" or (parameter_id == "" and instrument_model == "DS18B20"):
-            transformed_local_temp_data.append([instrument_model, personalized_id, timestamp, value])
+            transformed_local_temp_data.append([observation_id, instrument_model, personalized_id, timestamp, value])
         elif parameter_id == "humidity":
-            transformed_local_humidity_data.append([instrument_model, personalized_id, timestamp, value])
+            transformed_local_humidity_data.append([observation_id, instrument_model, personalized_id, timestamp, value])
         elif parameter_id == "pressure":
-            transformed_local_pressure_data.append([instrument_model, personalized_id, timestamp, value])
+            transformed_local_pressure_data.append([observation_id, instrument_model, personalized_id, timestamp, value])
         elif parameter_id == "co2_concentration":
-            transformed_local_co2_data.append([instrument_model, personalized_id, timestamp, value])
+            transformed_local_co2_data.append([observation_id, instrument_model, personalized_id, timestamp, value])
         else:
             raise KeyError("Error in data from local API")
 
@@ -81,14 +82,13 @@ def load_local_meta_data():
 # transformed_data = transform_local_data(data)
 # print(transformed_data[3])
 
-######### SKAL HAVE SKILT TING AD SÅ HVER PARAMTER CAN BRUGES I LOAD
-
 def load_local_temperature_data(transformed_local_data_temp):
     conn = etl.open_connection()
     cursor = conn.cursor()
     insert_query = """
-                   INSERT INTO local_temperature(instrument_model, station_id, observed_time, celsius)
-                   VALUES (%s, %s, %s, %s);
+                   INSERT INTO local_temperature(observation_id,instrument_model, station_id, observed_time, celsius)
+                   VALUES (%s, %s, %s, %s, %s)
+                   ON CONFLICT (observation_id) DO NOTHING;
                    """
 
     cursor.executemany(insert_query, transformed_local_data_temp)
@@ -100,8 +100,9 @@ def load_local_humidity_data(transformed_local_data_humidity):
     conn = etl.open_connection()
     cursor = conn.cursor()
     insert_query = """
-                   INSERT INTO local_humidity(instrument_model, station_id, observed_time, percent_humidity)
-                   VALUES (%s, %s, %s, %s);
+                   INSERT INTO local_humidity(observation_id, instrument_model, station_id, observed_time, percent_humidity)
+                   VALUES (%s, %s, %s, %s, %s)
+                   ON CONFLICT (observation_id) DO NOTHING;
                    """
 
     cursor.executemany(insert_query, transformed_local_data_humidity)
@@ -113,8 +114,9 @@ def load_local_pressure_data(transformed_local_data_pressure):
     conn = etl.open_connection()
     cursor = conn.cursor()
     insert_query = """
-                   INSERT INTO local_pressure(instrument_model, station_id, observed_time, pascal)
-                   VALUES (%s, %s, %s, %s);
+                   INSERT INTO local_pressure(observation_id, instrument_model, station_id, observed_time, pascal)
+                   VALUES (%s, %s, %s, %s, %s)
+                   ON CONFLICT (observation_id) DO NOTHING;
                    """
 
     cursor.executemany(insert_query, transformed_local_data_pressure)
@@ -126,8 +128,9 @@ def load_local_co2_data(transformed_local_data_co2):
     conn = etl.open_connection()
     cursor = conn.cursor()
     insert_query = """
-                   INSERT INTO local_CO2(instrument_model, station_id, observed_time, ppm)
-                   VALUES (%s, %s, %s, %s);
+                   INSERT INTO local_CO2(observation_id, instrument_model, station_id, observed_time, ppm)
+                   VALUES (%s, %s, %s, %s, %s)
+                   ON CONFLICT (observation_id) DO NOTHING;
                    """
 
     cursor.executemany(insert_query, transformed_local_data_co2)

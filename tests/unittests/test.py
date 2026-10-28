@@ -10,6 +10,7 @@ class Test_etl_Transformer(unittest.TestCase):
         extracted_data = {
             "features": [
                 {
+                    'id': 14,
                     "properties": {
                         "parameterId": "humidity",
                         "stationId": "06124",
@@ -30,6 +31,7 @@ class Test_etl_Transformer(unittest.TestCase):
         extracted_data = {
             "features": [
                 {
+                    'id' : 25,
                     "properties": {
                         "parameterId": "humidity",
                         "stationId": "06124",
@@ -42,7 +44,7 @@ class Test_etl_Transformer(unittest.TestCase):
         }
 
         result = etl.transform(extracted_data)
-        self.assertEqual(result["humidity"][0], [
+        self.assertEqual(result["humidity"][0], [25,
             "06124",
             "2018-03-18T12:30:00Z",
             80
@@ -54,6 +56,7 @@ class Test_etl_Transformer(unittest.TestCase):
         extracted_data = {
             "features": [
                 {
+                    'id':'98845022-d7d1-1c18-a24f-3297f295634a',
                     "properties": {
                         "parameterId": "humidity",
                         "stationId": "06124",
@@ -66,7 +69,7 @@ class Test_etl_Transformer(unittest.TestCase):
         }
 
         result = etl.transform(extracted_data)
-        self.assertEqual(result["humidity"][0], [
+        self.assertEqual(result["humidity"][0], ['98845022-d7d1-1c18-a24f-3297f295634a',
             "06124",
             "2018-03-18T12:30:00Z",
             0
@@ -80,6 +83,7 @@ class Test_etl_Transformer(unittest.TestCase):
         extracted_data = {
             "features": [
                 {
+                    'id': 1500,
                     "properties": {
                         "parameterId": "",
                         "stationId": "06124",
@@ -101,6 +105,7 @@ class Test_etl_Transformer(unittest.TestCase):
         extracted_data = {
             "features": [
                 {
+                    'id':2500,
                     "properties": {
                         "parameterId": "humidity",
                         "stationId": "06124",
@@ -121,6 +126,7 @@ class Test_etl_Transformer(unittest.TestCase):
         extracted_data = {
             "features": [
                 {
+                    'id': 5000,
                     "properties": {
                         "parameterId": "humidity",
                         "stationId": "",
@@ -141,6 +147,7 @@ class Test_etl_Transformer(unittest.TestCase):
         extracted_data = {
             "features": [
                 {
+                    'id': 7000,
                     "properties": {
                         "parameterId": "humidity",
                         "stationId": "06124",
@@ -199,8 +206,8 @@ class Test_etl_Transformer(unittest.TestCase):
                                                                                      'type': 'application/geo+json',
                                                                                      'title': 'Next set of results'}]}
 
-        self.assertEqual(etl.transform(one_observation), {'precip_dur_past10min': [['05005', '2018-03-18T12:30:00Z', 0.0]]})
-        self.assertEqual(etl.transform(two_observations), {'precip_dur_past10min': [['05005', '2018-03-18T12:30:00Z', 0.0]], 'precip_past10min': [['05005', '2018-03-18T12:30:00Z', 0.0]]})
+        self.assertEqual(etl.transform(one_observation), {'precip_dur_past10min': [['2b55028a-aa90-6af2-3692-3a0855de24eb','05005', '2018-03-18T12:30:00Z', 0.0]]})
+        self.assertEqual(etl.transform(two_observations), {'precip_dur_past10min': [['2b55028a-aa90-6af2-3692-3a0855de24eb','05005', '2018-03-18T12:30:00Z', 0.0]], 'precip_past10min': [['98845022-d7d1-1c18-a24f-3297f295634a','05005', '2018-03-18T12:30:00Z', 0.0]]})
         return
 
     def test_non_input(self):
@@ -224,17 +231,17 @@ class Test_etl_Transformer(unittest.TestCase):
         self.assertEqual(result, {})
 
     def test_dif_parmId_inputs(self):
-        self.assertEqual(etl.transform({"features":[{'properties': {'parameterId': 'temp_dry', 'value': -11.7,'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}},
-                        {'properties': {'parameterId': 'radia_glob_past1h', 'value': 40.0, 'observed': '2003-01-27T10:00:00Z','stationId': '06068'}}]})
-                        ,{'temp_dry': [['04224', '2003-01-27T10:00:00Z', -11.7]], 'radia_glob_past1h': [['06068', '2003-01-27T10:00:00Z', 40.0]]})
+        self.assertEqual(etl.transform({"features":[{'id': 12, 'properties': {'parameterId': 'temp_dry', 'value': -11.7,'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}},
+                        {'id': 14, 'properties': {'parameterId': 'radia_glob_past1h', 'value': 40.0, 'observed': '2003-01-27T10:00:00Z','stationId': '06068'}}]})
+                        ,{'temp_dry': [[12,'04224', '2003-01-27T10:00:00Z', -11.7]], 'radia_glob_past1h': [[14, '06068', '2003-01-27T10:00:00Z', 40.0]]})
     def test_same_parmId_inputs(self):
-        self.assertEqual(etl.transform({"features":[{'properties': {'parameterId': 'temp_dry', 'value': -11.7, 'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}},
-                        {'properties': {'parameterId': 'temp_dry', 'value': 40.0, 'observed': '2003-01-27T10:00:00Z','stationId': '06068'}}]})
-                        ,{'temp_dry': [['04224', '2003-01-27T10:00:00Z',-11.7],['06068','2003-01-27T10:00:00Z',40.0]]})
+        self.assertEqual(etl.transform({"features":[{'id': 12,'properties': {'parameterId': 'temp_dry', 'value': -11.7, 'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}},
+                        {'id': 14, 'properties': { 'parameterId': 'temp_dry', 'value': 40.0, 'observed': '2003-01-27T10:00:00Z','stationId': '06068'}}]})
+                        ,{'temp_dry': [[12,'04224', '2003-01-27T10:00:00Z',-11.7],[14, '06068','2003-01-27T10:00:00Z',40.0]]})
     def test_notrel_data(self):
-        self.assertEqual(etl.transform({"features":[{'properties': {'parameterId': 'temp_dry', 'created': '2025-08-25T17:00:16.827145Z', 'value': -11.7, 'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}},
-                                {'properties': {'parameterId': 'temp_dry', 'created': '2025-08-25T17:00:16.827145Z', 'value': 40.0, 'observed':'2003-01-27T10:00:00Z','stationId': '06068',}}]})
-                                ,{'temp_dry': [['04224', '2003-01-27T10:00:00Z',-11.7],['06068','2003-01-27T10:00:00Z',40.0]]})
+        self.assertEqual(etl.transform({"features":[{'id': 12,'properties': {'parameterId': 'temp_dry', 'created': '2025-08-25T17:00:16.827145Z', 'value': -11.7, 'observed': '2003-01-27T10:00:00Z', 'stationId': '04224'}},
+                                {'id': 14,'properties': {'parameterId': 'temp_dry', 'created': '2025-08-25T17:00:16.827145Z', 'value': 40.0, 'observed':'2003-01-27T10:00:00Z','stationId': '06068',}}]})
+                                ,{'temp_dry': [[12,'04224', '2003-01-27T10:00:00Z',-11.7],[14,'06068','2003-01-27T10:00:00Z',40.0]]})
 
 
 
@@ -362,8 +369,9 @@ class Test_etl_Load(unittest.TestCase):
 
         self.assertEqual(mock_cursor.executemany.call_args.args[0],
                          """
-                   INSERT INTO dmi_humidity(station_id, observed_time, percent_humidity)
-                   VALUES(%s, %s, %s);
+                   INSERT INTO dmi_humidity(observation_id, station_id, observed_time, percent_humidity)
+                   VALUES(%s, %s, %s, %s)
+                   ON CONFLICT (observation_id) DO NOTHING;
                    """) #Antallet af mellemrum er vigtigt, do not touch!!
 
 
@@ -725,7 +733,7 @@ class Test_meta_load(unittest.TestCase):
 
         self.assertEqual(mock_cursor.executemany.call_args.args[0],
                          """
-                   INSERT INTO dmi_meta_data(station_id, name, coordinates_longitude, coordinates_latitude)
+                   INSERT INTO meta_data(station_id, name, coordinates_longitude, coordinates_latitude)
                    VALUES(%s, %s, %s, %s);
                    """) #Antallet af mellemrum er vigtigt, do not touch!!
 

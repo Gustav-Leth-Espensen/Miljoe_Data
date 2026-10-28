@@ -18,7 +18,7 @@ def stations(
         limit: int = Query(default=1000, ge=1, le=10000),
 ):
     query = """ SELECT * 
-                FROM dmi_meta_data
+                FROM meta_data
                 WHERE (CAST(:station_id AS CHAR(5)) IS NULL OR station_id = CAST(:station_id AS CHAR(5)))
                 ORDER BY id ASC 
                 LIMIT :limit"""
