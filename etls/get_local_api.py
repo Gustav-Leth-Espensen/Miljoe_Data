@@ -25,8 +25,23 @@ def node_translater(node_id):
         return "ODE01"
     elif node_id == "6d437168-7432-470b-9cf4-08439d0127ad":
         return "AAR01"
+    elif node_id == "33616cde-3d37-41fc-b698-f6e2e5640236":
+        return "BAL02"
     else:
         raise ValueError("Node_id does not exist")
+
+def meta_data_local_api():
+    local_meta_data_list = []
+    ballerup_meta = ["BAL01", "Specialisterne Ballerup", 10.21076, 56.15674]
+    odense_meta = ["ODE01", "Specialisterne Odense", 10.38831, 55.39594]
+    aarhus_meta = ["AAR01", "Specialisterne Aarhus", 12.36328, 55.73165]
+    ballerup_meta_2 = ["BAL02", "Specialisterne Ballerup", 10.21076, 56.15674]
+    local_meta_data_list.append(ballerup_meta)
+    local_meta_data_list.append(odense_meta)
+    local_meta_data_list.append(aarhus_meta)
+    local_meta_data_list.append(ballerup_meta_2)
+    return local_meta_data_list
+
 
 def transform_local_data(json_data):
     transformed_local_temp_data = []

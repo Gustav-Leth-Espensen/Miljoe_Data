@@ -8,12 +8,14 @@ services:
       db:
         condition: service_healthy
 
+
   db:
     image: postgres:18
     ports:
       - "5432:5432"
     volumes:
       - ./init-db:/docker-entrypoint-initdb.d
+      - db-data:/var/lib/postgresql
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -36,6 +38,10 @@ services:
     ports:
        - "8000:8000"
 
+volumes:
+  db-data:
+
+####  docker cp etls/data.json miljoe_data-app-1:/data
 
   #integration-tests:
   #  build:
