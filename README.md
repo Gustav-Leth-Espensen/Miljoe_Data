@@ -1,17 +1,30 @@
 # Miljoe_Data
-Opgave uge 4-8 specialisterne
+Opgave uge 4-8 specialisterne  
+Create and ETL pipeline to collect data from DMI's API
+and a local APi and put it into a PostgreSQL database. 
+This pipeline must be able to continuesly gather data 
+from the two APIs as new data is put into their databases.
 
 # Description
-Create and ETL function to collect data from DMI and put it into a PostgreSQL database.
+ETL pipeline which can continuesly update and put data into postgreSQL database.  
+This database is accessable through a local API which continuesly update with the new data.
+
 
 
 ## UML diagram
 ![Activity diagram]()
 
 # Getting Started
+make an .env file with the following variables: 
+> DB_USER=user  
+> DB_PASSWORD=user_password  
+> DB_NAME=database_name
+> DB_URL=postgresql://user:user_password@db_server_hostname:5432/database_name  
+> API_TOKEN=api_token_from_local_database
+ 
+Make sire this .env is not share through any version control system.  
+In this project the .env file is in the .gotignore file and .dockerignore file.
 
-Creating an database url:
-`postgresql://user:user_password@db_server_hostname:5432/database_name`
 
 ## Dependencies 
 Docker 29.8.1  
@@ -19,15 +32,13 @@ requests 2.34.2
 psycopg 3.3.6  
 psycopg-binary 3.3.6  
 numpy 2.5  
-matplotlib.pyplot 3.11  
-dotenvx 2.0.1  
+matplotlib.pyplot 3.11
 
 ## Executing program
 
 # Authors
 Gustav Leth-Espensen
-Amalie Fransiska Heugert Mørck 
-Viktor Lønberg Bilde
+Amalie Fransiska Heugert Mørck
 
 # Version History
 
