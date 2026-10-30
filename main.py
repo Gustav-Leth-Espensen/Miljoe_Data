@@ -12,8 +12,7 @@ if __name__ == '__main__':
         meta_list.append(i)
     meta.load_meta_data(meta_list)
 
-    date_time = "2025-06-12T01:00:00Z/2026-10-27T01:00:00Z"
-
+    date_time = "2026-10-29T01:00:00Z/2026-12-27T01:00:00Z"
     limit = 5000
     offset = 0
 
@@ -28,6 +27,7 @@ if __name__ == '__main__':
     extracted_data_pressure = etl.extract_weather_data_from_dmi(date_time, limit, offset, "pressure")
     transformed_data_pressure = etl.transform(extracted_data_pressure)
     etl.load_pressure(transformed_data_pressure)
+
     while True:
         local_data = lapi.extract_data_from_local_api()
         transformed_local_data = lapi.transform_local_data(local_data)
@@ -36,6 +36,6 @@ if __name__ == '__main__':
         lapi.load_local_pressure_data(transformed_local_data[2])
         lapi.load_local_co2_data(transformed_local_data[3])
         print("One LOAD of DATA")
-        time.sleep(60)
+        time.sleep(600)
 
 

@@ -32,10 +32,10 @@ def node_translater(node_id):
 
 def meta_data_local_api():
     local_meta_data_list = []
-    ballerup_meta = ["BAL01", "Specialisterne Ballerup", 10.21076, 56.15674]
+    ballerup_meta = ["BAL01", "Specialisterne Ballerup", 12.36328, 55.73165]
     odense_meta = ["ODE01", "Specialisterne Odense", 10.38831, 55.39594]
-    aarhus_meta = ["AAR01", "Specialisterne Aarhus", 12.36328, 55.73165]
-    ballerup_meta_2 = ["BAL02", "Specialisterne Ballerup", 10.21076, 56.15674]
+    aarhus_meta = ["AAR01", "Specialisterne Aarhus", 10.21076, 56.15674]
+    ballerup_meta_2 = ["BAL02", "Specialisterne Ballerup", 12.36328, 55.73165]
     local_meta_data_list.append(ballerup_meta)
     local_meta_data_list.append(odense_meta)
     local_meta_data_list.append(aarhus_meta)
@@ -72,8 +72,8 @@ def transform_local_data(json_data):
         else:
             raise KeyError("Error in data from local API")
 
-
-    return transformed_local_temp_data, transformed_local_humidity_data, transformed_local_pressure_data, transformed_local_co2_data
+    #### Reversing list so they get in ascending order in API
+    return transformed_local_temp_data[::-1], transformed_local_humidity_data[::-1], transformed_local_pressure_data[::-1], transformed_local_co2_data[::-1]
 
 def load_local_meta_data():
     return

@@ -23,6 +23,7 @@ def extract_weather_data_from_own_db(parameter_id:str, station_id:str, start_dat
 # print(extract_weather_data_from_own_db("humidity", station_id="", start_data="", end_date=""))
 
 
+
 def extract_meta_data_from_own_api():
     url = "http://127.0.0.1:8000/stations"
     response = requests.get(url)
@@ -33,7 +34,7 @@ def extract_meta_data_from_own_api():
 
 # print(extract_meta_data_from_own_api())
 
-def transform_data_from_own_db(extracted_data, measurement_type):
+def transform_dmi_data_from_api(extracted_data, measurement_type):
     id_list = []
     station_id_list = []
     observed_time_list = []
@@ -56,6 +57,7 @@ def transform_data_from_own_db(extracted_data, measurement_type):
     value_list = np.asarray(value_list, dtype=float)
 
     return id_list, station_id_list, observed_time_list, value_list
+
 
 def transform_meta_data_from_own_api(meta_data):
     id_list = []
@@ -103,26 +105,28 @@ def sort_data_after_datetime(data_from_own_database):
     return sorted_id_list, sorted_station_id_list, sorted_observed_time_list, sorted_value_list
 
 
-# raw_humidity_data =extract_weather_data_from_own_db("temperature", station_id="06019", start_data="", end_date="", limit=1000)
-# humidity_data = transform_data_from_own_db(raw_humidity_data, "temperature")
+raw_humidity_data =extract_weather_data_from_own_db("temperature", station_id="06019", start_data="", end_date="", limit=1000)
+humidity_data = transform_dmi_data_from_api(raw_humidity_data, "celsius")
+
+# print(humidity_data)
 # print(sort_data_after_datetime(humidity_data)[3].dtype)
 
 ##### NEEDS STATION ID AND START/END DATE
 def create_plot_one_station(parameter_id ,station_id, measurement_type ,marker):
     data_extracted_from_own_api = extract_weather_data_from_own_db(parameter_id=parameter_id, station_id=station_id,start_data="", end_date="", limit=1000)
-    station_data = transform_data_from_own_db(data_extracted_from_own_api, measurement_type)
+    station_data = transform_dmi_data_from_api(data_extracted_from_own_api, measurement_type)
     sorted_station_data = sort_data_after_datetime(station_data)
 
     raw_meta_data = extract_meta_data_from_own_api()
     meta_data = transform_meta_data_from_own_api(raw_meta_data)
-
     label_station_name = meta_data[2][meta_data[1] == station_id]
 
     plt.plot(sorted_station_data[2], sorted_station_data[3], marker, label = label_station_name)
     return f"Plot for {parameter_id} at station {station_id} ready."
 
-create_plot_one_station("temperature","06019", "temperature", 'r.')
-# create_plot_one_station("temperature","06030", "temperature", 'b.')
+create_plot_one_station("temperature","06060", "celsius", 'r.')
+create_plot_one_station("temperature","06030", "celsius", 'b.')
+plt.xticks(rotation=45)
 plt.legend()
 plt.title("Temperature")
 plt.show()
@@ -135,23 +139,29 @@ plt.show()
 # print(stats.describe(a))
 
 raw_meta_data = extract_meta_data_from_own_api()
+# print(raw_meta_data)
 test_meta_data = transform_meta_data_from_own_api(raw_meta_data)
-# print(test_meta_data[3])
-# print(test_meta_data[4])
+# print(test_meta_data)
+# print(test_meta_data)
+# print(test_meta_data[2][:-4])
+# print(test_meta_data[3][:-3])
+# print(test_meta_data[4][:-3])
 
 def find_index_ballerup_coordinater(coordinates_longitude_list, coordinates_latitude_list):
     ballerup_coordinate_list = [12.36328, 55.73165]
 
-    longitude_diff_sq = (coordinates_longitude_list - ballerup_coordinate_list[0])**2
-    latitude_diff_sq = (coordinates_latitude_list - ballerup_coordinate_list[1])**2
-
+    longitude_diff_sq = (ballerup_coordinate_list[0] - coordinates_longitude_list)**2
+    print(longitude_diff_sq)
+    latitude_diff_sq = (ballerup_coordinate_list[1] - coordinates_latitude_list)**2
+    print(latitude_diff_sq)
     total_diff_numeric = np.abs(longitude_diff_sq) + np.abs(latitude_diff_sq)
 
     index = np.where(total_diff_numeric == np.min(total_diff_numeric))
     return index
 
-balleruo_index = find_index_ballerup_coordinater(test_meta_data[3],test_meta_data[4])
-print(test_meta_data[2][balleruo_index[0][0]])
+ballerup_index = find_index_ballerup_coordinater(test_meta_data[3][:-4],test_meta_data[4][:-4])
+print(test_meta_data[2][ballerup_index[0][0]])
+print(test_meta_data[1][ballerup_index[0][0]])
 
 def find_index_odense_coordinater(coordinates_longitude_list, coordinates_latitude_list):
     odense_coordinate_list = [10.38831, 55.39594]
@@ -164,8 +174,8 @@ def find_index_odense_coordinater(coordinates_longitude_list, coordinates_latitu
     index = np.where(total_diff_numeric == np.min(total_diff_numeric))
     return index
 
-odense_index = find_index_odense_coordinater(test_meta_data[3],test_meta_data[4])
-print(test_meta_data[2][odense_index[0][0]])
+# odense_index = find_index_odense_coordinater(test_meta_data[3],test_meta_data[4])
+# print(test_meta_data[2][odense_index[0][0]])
 
 def find_index_aarhus_coordinater(coordinates_longitude_list, coordinates_latitude_list):
     aarhus_coordinate_list = [10.21076, 56.15674]
@@ -178,5 +188,9 @@ def find_index_aarhus_coordinater(coordinates_longitude_list, coordinates_latitu
     index = np.where(total_diff_numeric == np.min(total_diff_numeric))
     return index
 
-aarhus_index = find_index_aarhus_coordinater(test_meta_data[3],test_meta_data[4])
-print(test_meta_data[2][aarhus_index[0][0]])
+# aarhus_index = find_index_aarhus_coordinater(test_meta_data[3],test_meta_data[4])
+# print(test_meta_data[2][aarhus_index[0][0]])
+
+
+
+
