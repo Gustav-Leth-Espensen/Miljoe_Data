@@ -835,13 +835,14 @@ class TestMetaDataLocalApi(unittest.TestCase):
 
     def test_returns_expected_metadata(self):
         expected = [
-            ["BAL01", "Specialisterne Ballerup", 10.21076, 56.15674],
+            ["BAL01", "Specialisterne Ballerup", 12.36328, 55.73165],
             ["ODE01", "Specialisterne Odense", 10.38831, 55.39594],
-            ["AAR01", "Specialisterne Aarhus", 12.36328, 55.73165],
-            ["BAL02", "Specialisterne Ballerup", 10.21076, 56.15674],
+            ["AAR01", "Specialisterne Aarhus", 10.21076, 56.15674],
+            ["BAL02", "Specialisterne Ballerup", 12.36328, 55.73165],
         ]
         self.assertEqual(get_local_api.meta_data_local_api(), expected)
         return
+
 
 class TestTransformLocalData(unittest.TestCase):
 
