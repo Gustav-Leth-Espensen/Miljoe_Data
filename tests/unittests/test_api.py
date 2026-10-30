@@ -13,8 +13,6 @@ if "DATABASE_URL" not in os.environ:
 
 import api.api as api
 
-
-#engine = create_engine(os.environ["DATABASE_URL"])
 class TestStartAPI(unittest.TestCase):
 
     def setUp(self):

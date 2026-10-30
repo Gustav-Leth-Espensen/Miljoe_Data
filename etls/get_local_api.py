@@ -18,6 +18,7 @@ def extract_data_from_local_api():
     return extracted_data
 
 
+
 def node_translater(node_id):
     if node_id == "ae6901bb-6703-4955-9d59-179c1ee5dae8":
         return "BAL01"

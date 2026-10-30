@@ -206,7 +206,7 @@ def local_pressure(
             )
         return [dict(row) for row in result.mappings()]
 
-@app.get("/local_CO2")
+@app.get("/local_co2")
 def local_co2(
     station_id: str | None = None,
     start_datetime: datetime | None = None,
@@ -236,4 +236,135 @@ def local_co2(
         return [dict(row) for row in result.mappings()]
 
 
+
+@app.get("/all_humidity")
+def all_humidity(
+    station_id: str | None = None,
+    start_datetime: datetime | None = None,
+    end_datetime: datetime | None = None,
+    limit: int = Query(default=1000, ge=1, le=10000),
+    ):
+    query = text("""
+                 SELECT *
+                 FROM (
+                      SELECT 
+                          id,
+                          station_id,
+                          observed_time,
+                          percent_humidity,
+                          'dmi' AS source
+                     FROM dmi_humidity 
+                     UNION ALL
+                     SELECT 
+                         id,
+                         station_id,
+                         observed_time,
+                         percent_humidity,
+                         'local' AS source
+                     FROM local_humidity 
+                      
+                 ) AS combined_humidity    
+                 WHERE (:station_id IS NULL OR station_id = :station_id)
+                   AND (:start_datetime IS NULL OR observed_time >= :start_datetime)
+                   AND (:end_datetime IS NULL OR observed_time <= :end_datetime)
+                 ORDER BY id ASC
+                 LIMIT :limit
+             """).bindparams(
+                bindparam("station_id", type_=String(5)),
+                bindparam("start_datetime", type_=DateTime(timezone=True)),
+                bindparam("end_datetime", type_=DateTime(timezone=True)),
+                )
+    with engine.connect() as conn:
+        result = conn.execute(query,
+                {"station_id": station_id,
+                "start_datetime": start_datetime,
+                "end_datetime": end_datetime,
+                "limit": limit,
+            },
+            )
+        return [dict(row) for row in result.mappings()]
+
+
+@app.get("/all_presssure")
+def all_pressure(
+        station_id: str | None = None,
+        start_datetime: datetime | None = None,
+        end_datetime: datetime | None = None,
+        limit: int = Query(default=1000, ge=1, le=10000),
+):
+    query = text("""
+                 SELECT *
+                 FROM (SELECT id,
+                              station_id,
+                              observed_time,
+                              hPa / 1.0 AS pressure_hPa,
+                              'dmi' AS source
+                       FROM dmi_pressure
+                       UNION ALL
+                       SELECT id,
+                              station_id,
+                              observed_time,
+                              pascal / 100.0 AS pressure_hPa,
+                              'local' AS source
+                       FROM local_pressure) AS combined_pressure
+                 WHERE (:station_id IS NULL OR station_id = :station_id)
+                   AND (:start_datetime IS NULL OR observed_time >= :start_datetime)
+                   AND (:end_datetime IS NULL OR observed_time <= :end_datetime)
+                 ORDER BY id ASC LIMIT :limit
+                 """).bindparams(
+        bindparam("station_id", type_=String(5)),
+        bindparam("start_datetime", type_=DateTime(timezone=True)),
+        bindparam("end_datetime", type_=DateTime(timezone=True)),
+    )
+    with engine.connect() as conn:
+        result = conn.execute(query,
+                              {"station_id": station_id,
+                               "start_datetime": start_datetime,
+                               "end_datetime": end_datetime,
+                               "limit": limit,
+                               },
+                              )
+        return [dict(row) for row in result.mappings()]
+
+
+@app.get("/all_temperature")
+def all_temperature(
+        station_id: str  | None = None,
+        start_datetime: datetime | None = None,
+        end_datetime: datetime | None = None,
+        limit: int = Query(default=1000, ge=1, le=10000),
+):
+    query = text("""
+                     SELECT *
+                     FROM (SELECT id,
+                                  station_id,
+                                  observed_time,
+                                  celsius,
+                                  'dmi'  AS source
+                           FROM dmi_temp_dry
+                           UNION ALL
+                           SELECT id,
+                                  station_id,
+                                  observed_time,
+                                  celsius,
+                                  'local'        AS source
+                           FROM local_temperature) AS combined_temperature
+                     WHERE (:station_id IS NULL OR station_id = :station_id)
+                       AND (:start_datetime IS NULL OR observed_time >= :start_datetime)
+                       AND (:end_datetime IS NULL OR observed_time <= :end_datetime)
+                     ORDER BY id ASC LIMIT :limit
+                 """).bindparams(
+        bindparam("station_id", type_=String(5)),
+        bindparam("start_datetime", type_=DateTime(timezone=True)),
+        bindparam("end_datetime", type_=DateTime(timezone=True)),
+    )
+    with engine.connect() as conn:
+        result = conn.execute(query,
+                              {"station_id": station_id,
+                               "start_datetime": start_datetime,
+                               "end_datetime": end_datetime,
+                               "limit": limit,
+                               },
+                              )
+        return [dict(row) for row in result.mappings()]
 

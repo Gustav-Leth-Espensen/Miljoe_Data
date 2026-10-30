@@ -768,29 +768,6 @@ class TestLocalExtract(unittest.TestCase):
 
         return
 
-
-    #
-    # def test_offset(self):
-    #     temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
-    #     with self.assertRaises(ValueError) as context:
-    #         etl.extract_weather_data_from_dmi(temp_datetime, 1, 100000000, "humidity")
-    #     self.assertIn("Input in extract outside of API scope.", str(context.exception))
-    #     return
-    #
-    # def test_parameter_id(self):
-    #     temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
-    #     with self.assertRaises(ValueError) as context:
-    #         etl.extract_weather_data_from_dmi(temp_datetime, 1, 0, "523flksatgq")
-    #     self.assertIn("Input in extract outside of API scope.", str(context.exception))
-    #     return
-    #
-    # def test_bbox(self):
-    #     temp_datetime = "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
-    #     with self.assertRaises(ValueError) as context:
-    #         etl.extract_weather_data_from_dmi(temp_datetime, 100, 0, "humidity", bbox="1000,12,1500,58")
-    #     self.assertIn("Input in extract outside of API scope.", str(context.exception))
-    #     return
-
     @patch("etls.get_local_api.requests.get")
     def test_extract_from_local_api(self, mock_get):  # testen kontrollerer at det forventede json data returneres
         mock_get.return_value.ok = True  # simulerer vellykket api kald
@@ -820,261 +797,170 @@ class TestLocalExtract(unittest.TestCase):
         self.assertEqual(parameters["value"], 101954.6171875)  # Tjekker værdi af en observation
         return
 
-#class TestLocalETLTransformer(unittest.TestCase):
-    #
-    # def test_local_pressure_is_added(self):
-    #     extracted_data = {
-    #             "observations": [
-    #             {'observationId': 'f7064fe3-0e3c-4d0d-81c6-620213ae5dc2',
-    #              'nodeId': '2c47284d-777b-44f0-bdeb-3d442f6a31b1',
-    #              'instrumentId': 'BME280:75E99D2B',
-    #              'instrumentModel': 'BME280',
-    #              'sensor': 'pressure',
-    #              'readingId': 'c3e7eecf-1ff8-4323-b849-625e894968f3',
-    #              'value': 101954.6171875,
-    #              'timestamp': '2026-10-28T12:24:33.408625Z'}
-    #         ]
-    #         }
-    #
-    #     result = get_local_api.transform_local_data(extracted_data)
-    #
-    #     self.assertIn("pressure", result)
-    #     return
+class TestNodeTranslater(unittest.TestCase):
+    def test_node_bal01(self):
+        self.assertEqual(get_local_api.node_translater("ae6901bb-6703-4955-9d59-179c1ee5dae8"),
+        "BAL01"
+        )
+        return
 
-        # def test_humidity_stored(self):
-        #     extracted_data = {
-        #         "features": [
-        #             {
-        #                 "properties": {
-        #                     "parameterId": "humidity",
-        #                     "stationId": "06124",
-        #                     "observed": "2018-03-18T12:30:00Z",
-        #                     "value": 80
-        #                 }
-        #             },
-        #
-        #         ]
-        #     }
-        #
-        #     result = etl.transform(extracted_data)
-        #     self.assertEqual(result["humidity"][0], [
-        #         "06124",
-        #         "2018-03-18T12:30:00Z",
-        #         80
-        #     ]
-        #                      )
-        #     return
-        #
-        # def test_value_0(self):
-        #     extracted_data = {
-        #         "features": [
-        #             {
-        #                 "properties": {
-        #                     "parameterId": "humidity",
-        #                     "stationId": "06124",
-        #                     "observed": "2018-03-18T12:30:00Z",
-        #                     "value": 0
-        #                 }
-        #             },
-        #
-        #         ]
-        #     }
-        #
-        #     result = etl.transform(extracted_data)
-        #     self.assertEqual(result["humidity"][0], [
-        #         "06124",
-        #         "2018-03-18T12:30:00Z",
-        #         0
-        #     ]
-        #                      )
-        #     return
-        #
-        # def test_no_parameter(self):
-        #     extracted_data = {
-        #         "features": [
-        #             {
-        #                 "properties": {
-        #                     "parameterId": "",
-        #                     "stationId": "06124",
-        #                     "observed": "2018-03-18T12:30:00Z",
-        #                     "value": 80
-        #                 }
-        #             },
-        #
-        #         ]
-        #     }
-        #     with self.assertRaises(ValueError) as context:
-        #         etl.transform(extracted_data)
-        #     self.assertIn("One of parameters not found.", str(context.exception))
-        #     return
-        #
-        # def test_no_value(self):
-        #     extracted_data = {
-        #         "features": [
-        #             {
-        #                 "properties": {
-        #                     "parameterId": "humidity",
-        #                     "stationId": "06124",
-        #                     "observed": "2018-03-18T12:30:00Z",
-        #                     "value": ""
-        #                 }
-        #             },
-        #
-        #         ]
-        #     }
-        #
-        #     with self.assertRaises(ValueError) as context:
-        #         etl.transform(extracted_data)
-        #     self.assertIn("One of parameters not found.", str(context.exception))
-        #     return
-        #
-        # def test_no_stationId(self):
-        #     extracted_data = {
-        #         "features": [
-        #             {
-        #                 "properties": {
-        #                     "parameterId": "humidity",
-        #                     "stationId": "",
-        #                     "observed": "2018-03-18T12:30:00Z",
-        #                     "value": 0.0
-        #                 }
-        #             },
-        #
-        #         ]
-        #     }
-        #
-        #     with self.assertRaises(ValueError) as context:
-        #         etl.transform(extracted_data)
-        #     self.assertIn("One of parameters not found.", str(context.exception))
-        #     return
-        #
-        # def test_no_observed_time(self):
-        #     extracted_data = {
-        #         "features": [
-        #             {
-        #                 "properties": {
-        #                     "parameterId": "humidity",
-        #                     "stationId": "06124",
-        #                     "observed": "",
-        #                     "value": 0.0
-        #                 }
-        #             },
-        #
-        #         ]
-        #     }
-        #
-        #     with self.assertRaises(ValueError) as context:
-        #         etl.transform(extracted_data)
-        #     self.assertIn("One of parameters not found.", str(context.exception))
-        #     return
-        #
-        # def test_standard_input(self):
-        #     one_observation = {'type': 'FeatureCollection',
-        #                        'features': [{'type': 'Feature', 'id': '2b55028a-aa90-6af2-3692-3a0855de24eb',
-        #                                      'geometry': {'type': 'Point',
-        #                                                   'coordinates': [10.1074, 57.5705]},
-        #                                      'properties': {'parameterId': 'precip_dur_past10min',
-        #                                                     'created': '2025-08-11T10:06:24.225346Z',
-        #                                                     'value': 0, 'observed': '2018-03-18T12:30:00Z',
-        #                                                     'stationId': '05005'}}],
-        #                        'timeStamp': '2026-10-08T08:50:31Z', 'numberReturned': 1, 'links': [{
-        #             'href': 'https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00%3A00%3A00Z%2F2018-03-18T12%3A31%3A12Z&limit=1&offset=0&bbox=7%2C54%2C16%2C58',
-        #             'rel': 'self',
-        #             'type': 'application/geo+json',
-        #             'title': 'This document'}, {
-        #             'href': 'https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00%3A00%3A00Z%2F2018-03-18T12%3A31%3A12Z&limit=1&bbox=7%2C54%2C16%2C58&offset=1',
-        #             'rel': 'next',
-        #             'type': 'application/geo+json',
-        #             'title': 'Next set of results'}]}
-        #     two_observations = {'type': 'FeatureCollection',
-        #                         'features': [{'type': 'Feature', 'id': '2b55028a-aa90-6af2-3692-3a0855de24eb',
-        #                                       'geometry': {'type': 'Point',
-        #                                                    'coordinates': [10.1074, 57.5705]},
-        #                                       'properties': {'parameterId': 'precip_dur_past10min',
-        #                                                      'created': '2025-08-11T10:06:24.225346Z',
-        #                                                      'value': 0.0, 'observed': '2018-03-18T12:30:00Z',
-        #                                                      'stationId': '05005'}},
-        #                                      {'type': 'Feature', 'id': '98845022-d7d1-1c18-a24f-3297f295634a',
-        #                                       'geometry': {'type': 'Point',
-        #                                                    'coordinates': [10.1074, 57.5705]},
-        #                                       'properties': {'parameterId': 'precip_past10min',
-        #                                                      'created': '2025-08-11T10:06:23.343744Z',
-        #                                                      'value': 0.0, 'observed': '2018-03-18T12:30:00Z',
-        #                                                      'stationId': '05005'}}],
-        #                         'timeStamp': '2026-10-08T08:47:36Z', 'numberReturned': 2, 'links': [{
-        #             'href': 'https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00%3A00%3A00Z%2F2018-03-18T12%3A31%3A12Z&limit=2&offset=0&bbox=7%2C54%2C16%2C58',
-        #             'rel': 'self',
-        #             'type': 'application/geo+json',
-        #             'title': 'This document'}, {
-        #             'href': 'https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?datetime=2018-02-12T00%3A00%3A00Z%2F2018-03-18T12%3A31%3A12Z&limit=2&bbox=7%2C54%2C16%2C58&offset=2',
-        #             'rel': 'next',
-        #             'type': 'application/geo+json',
-        #             'title': 'Next set of results'}]}
-        #
-        #     self.assertEqual(etl.transform(one_observation),
-        #                      {'precip_dur_past10min': [['05005', '2018-03-18T12:30:00Z', 0.0]]})
-        #     self.assertEqual(etl.transform(two_observations),
-        #                      {'precip_dur_past10min': [['05005', '2018-03-18T12:30:00Z', 0.0]],
-        #                       'precip_past10min': [['05005', '2018-03-18T12:30:00Z', 0.0]]})
-        #     return
-        #
-        # def test_non_input(self):
-        #     test_dict = {"greeting": "Hello, world!"}
-        #     empty_dict = {}
-        #
-        #     with self.assertRaises(KeyError) as context:
-        #         etl.transform(test_dict)
-        #     self.assertIn("Missing key in data.", str(context.exception))
-        #
-        #     with self.assertRaises(ValueError) as context:
-        #         etl.transform(empty_dict)
-        #     self.assertIn("Trying to transform an empty dictionary.", str(context.exception))
-        #     return
-        #
-        # def test_transform_empty_data(self):
-        #     extracted_data = {
-        #         "features": []
-        #     }
-        #     result = etl.transform(extracted_data)
-        #     self.assertEqual(result, {})
-        #
-        # def test_dif_parmId_inputs(self):
-        #     self.assertEqual(etl.transform({"features": [{'properties': {'parameterId': 'temp_dry', 'value': -11.7,
-        #                                                                  'observed': '2003-01-27T10:00:00Z',
-        #                                                                  'stationId': '04224'}},
-        #                                                  {'properties': {'parameterId': 'radia_glob_past1h',
-        #                                                                  'value': 40.0,
-        #                                                                  'observed': '2003-01-27T10:00:00Z',
-        #                                                                  'stationId': '06068'}}]})
-        #                      , {'temp_dry': [['04224', '2003-01-27T10:00:00Z', -11.7]],
-        #                         'radia_glob_past1h': [['06068', '2003-01-27T10:00:00Z', 40.0]]})
-        #
-        # def test_same_parmId_inputs(self):
-        #     self.assertEqual(etl.transform({"features": [{'properties': {'parameterId': 'temp_dry', 'value': -11.7,
-        #                                                                  'observed': '2003-01-27T10:00:00Z',
-        #                                                                  'stationId': '04224'}},
-        #                                                  {'properties': {'parameterId': 'temp_dry', 'value': 40.0,
-        #                                                                  'observed': '2003-01-27T10:00:00Z',
-        #                                                                  'stationId': '06068'}}]})
-        #                      , {'temp_dry': [['04224', '2003-01-27T10:00:00Z', -11.7],
-        #                                      ['06068', '2003-01-27T10:00:00Z', 40.0]]})
-        #
-        # def test_notrel_data(self):
-        #     self.assertEqual(etl.transform({"features": [{'properties': {'parameterId': 'temp_dry',
-        #                                                                  'created': '2025-08-25T17:00:16.827145Z',
-        #                                                                  'value': -11.7,
-        #                                                                  'observed': '2003-01-27T10:00:00Z',
-        #                                                                  'stationId': '04224'}},
-        #                                                  {'properties': {'parameterId': 'temp_dry',
-        #                                                                  'created': '2025-08-25T17:00:16.827145Z',
-        #                                                                  'value': 40.0,
-        #                                                                  'observed': '2003-01-27T10:00:00Z',
-        #                                                                  'stationId': '06068', }}]})
-        #                      , {'temp_dry': [['04224', '2003-01-27T10:00:00Z', -11.7],
-        #                                      ['06068', '2003-01-27T10:00:00Z', 40.0]]})
+    def test_node_bal02(self):
+        self.assertEqual(get_local_api.node_translater("33616cde-3d37-41fc-b698-f6e2e5640236"),
+                        "BAL02"
+                        )
 
+    def test_node_ode01(self):
+        self.assertEqual(get_local_api.node_translater("2c47284d-777b-44f0-bdeb-3d442f6a31b1"),
+                        "ODE01"
+                        )
+        return
+
+    def test_node_aar01(self):
+        self.assertEqual(get_local_api.node_translater("6d437168-7432-470b-9cf4-08439d0127ad"),
+                        "AAR01"
+                        )
+        return
+
+    def test_invalid_node_id(self):
+        with self.assertRaisesRegex(
+            ValueError, "Node_id does not exist"
+        ):
+            get_local_api.node_translater("invalid-node-id")
+        return
+
+class TestMetaDataLocalApi(unittest.TestCase):
+    def test_returns_four_stations(self):
+        result = get_local_api.meta_data_local_api()
+        self.assertEqual(len(result), 4)
+
+    def test_returns_expected_metadata(self):
+        expected = [
+            ["BAL01", "Specialisterne Ballerup", 10.21076, 56.15674],
+            ["ODE01", "Specialisterne Odense", 10.38831, 55.39594],
+            ["AAR01", "Specialisterne Aarhus", 12.36328, 55.73165],
+            ["BAL02", "Specialisterne Ballerup", 10.21076, 56.15674],
+        ]
+        self.assertEqual(get_local_api.meta_data_local_api(), expected)
+        return
+
+class TestTransformLocalData(unittest.TestCase):
+
+    def setUp(self):
+        self.json_data = {
+            "observations": [
+                {
+                    "observationId": "obs-1",
+                    "instrumentModel": "DS18B20",
+                    "sensor": "temperature",
+                    "timestamp": "2026-10-28T12:24:33.408625Z",
+                    "value": 21.5,
+                    "nodeId": "ae6901bb-6703-4955-9d59-179c1ee5dae8"
+                },
+                {
+                    "observationId": "obs-2",
+                    "instrumentModel": "DHT22",
+                    "sensor": "humidity",
+                    "timestamp": "2026-10-28T12:24:33.408625Z",
+                    "value": 65.0,
+                    "nodeId": "2c47284d-777b-44f0-bdeb-3d442f6a31b1"
+                },
+                {
+                    "observationId": "obs-3",
+                    "instrumentModel": "BMP280",
+                    "sensor": "pressure",
+                    "timestamp": "2026-10-28T12:24:33.408625Z",
+                    "value": 1013.25,
+                    "nodeId": "6d437168-7432-470b-9cf4-08439d0127ad"
+                },
+                {
+                    "observationId": "obs-4",
+                    "instrumentModel": "MH-Z19",
+                    "sensor": "co2_concentration",
+                    "timestamp": "2026-10-28T12:24:33.408625Z",
+                    "value": 420,
+                    "nodeId": "33616cde-3d37-41fc-b698-f6e2e5640236"
+                },
+            ]
+        }
+
+    def test_transforms_all_sensor_types(self):
+        temperature, humidity, pressure, co2 = get_local_api.transform_local_data(
+            self.json_data
+        )
+        self.assertEqual(
+            temperature,
+            [["obs-1", "DS18B20", "BAL01",
+                "2026-10-28T12:24:33.408625Z", 21.5]]
+        )
+        self.assertEqual(
+            humidity,
+            [["obs-2", "DHT22", "ODE01",
+                "2026-10-28T12:24:33.408625Z", 65.0]]
+        )
+        self.assertEqual(
+            pressure,
+            [["obs-3", "BMP280", "AAR01",
+                "2026-10-28T12:24:33.408625Z", 1013.25]]
+        )
+
+        self.assertEqual(
+            co2,
+            [["obs-4", "MH-Z19", "BAL02",
+                "2026-10-28T12:24:33.408625Z", 420]]
+        )
+        return
+
+    def test_ds18b20_without_sensor_id_is_temperature(self):
+        data = {
+            "observations": [
+                {
+                    "observationId": "obs-5",
+                    "instrumentModel": "DS18B20",
+                    "sensor": "",
+                    "timestamp": "2026-10-28T12:24:33.408625Z",
+                    "value": 19.5,
+                    "nodeId": "ae6901bb-6703-4955-9d59-179c1ee5dae8"
+                },
+        ]
+        }
+
+        temperature, humidity, pressure, co2 = get_local_api.transform_local_data(data)
+        self.assertEqual(len(temperature), 1)
+        self.assertEqual(temperature[0][0], "obs-5")
+        self.assertEqual(temperature[0][2], "BAL01")
+        self.assertEqual(temperature[0][4], 19.5)
+
+        self.assertEqual(humidity, [])
+        self.assertEqual(pressure, [])
+        self.assertEqual(co2, [])
+
+        return
+    def test_unknown_sensor_type_raises_key_error(self):
+        data = {
+            "observations": [
+            {
+                "observationId": "obs-6",
+                "instrumentModel": "UNKNOWN",
+                "sensor": "unknown_sensor",
+                "timestamp": "2026-10-28T12:24:33.408625Z",
+                "value": 10,
+                "nodeId": "ae6901bb-6703-4955-9d59-179c1ee5dae8"
+            },
+        ]
+        }
+        with self.assertRaisesRegex(
+            KeyError, "Error in data from local API"
+        ):
+            get_local_api.transform_local_data(data)
+        return
+    def test_empty_observations_returns_empty_lists(self):
+        result = get_local_api.transform_local_data({"observations": []})
+        self.assertEqual(result, ([],[],[],[]))
 
 class TestETLLoadLocal(unittest.TestCase):
+
+
+
 
 
     @patch("etls.etl.open_connection")
@@ -1088,19 +974,6 @@ class TestETLLoadLocal(unittest.TestCase):
         mock_transformed_local_data_humidity = [["BME280", "BAL01", "2026-10-28T12:24:33.408625Z", 50, ],
                 ["BME280", "BAL02", "2026-10-28T12:24:33.408625Z", 70, ],]
 
-#instrument_model, station_id, observed_time, percent_humidity
-
-        # mock_get.return_value.json.return_value = {"observations": [
-        #     {'observationId': 'f7064fe3-0e3c-4d0d-81c6-620213ae5dc2',
-        #      'nodeId': '2c47284d-777b-44f0-bdeb-3d442f6a31b1',
-        #      'instrumentId': 'BME280:75E99D2B',
-        #      'instrumentModel': 'BME280',
-        #      'sensor': 'pressure',
-        #      'readingId': 'c3e7eecf-1ff8-4323-b849-625e894968f3',
-        #      'value': 101954.6171875,
-        #      'timestamp': '2026-10-28T12:24:33.408625Z'}
-        # ]
-        # }
         get_local_api.load_local_humidity_data(mock_transformed_local_data_humidity) #kører load med mock data
 
         mock_cursor.executemany.assert_called_once()
@@ -1110,9 +983,10 @@ class TestETLLoadLocal(unittest.TestCase):
             mock_transformed_local_data_humidity)
 
         self.assertEqual(mock_cursor.executemany.call_args.args[0],
-                          """
-                   INSERT INTO local_humidity(instrument_model, station_id, observed_time, percent_humidity)
-                   VALUES (%s, %s, %s, %s);
+                         """
+                   INSERT INTO local_humidity(observation_id, instrument_model, station_id, observed_time, percent_humidity)
+                   VALUES (%s, %s, %s, %s, %s)
+                   ON CONFLICT (observation_id) DO NOTHING;
                    """)
 
 
@@ -1140,9 +1014,10 @@ class TestETLLoadLocal(unittest.TestCase):
                             mock_transformed_local_data_pressure)
 
         self.assertEqual(mock_cursor.executemany.call_args.args[0],
-                          """
-                   INSERT INTO local_pressure(instrument_model, station_id, observed_time, pascal)
-                   VALUES (%s, %s, %s, %s);
+                         """
+                   INSERT INTO local_pressure(observation_id, instrument_model, station_id, observed_time, pascal)
+                   VALUES (%s, %s, %s, %s, %s)
+                   ON CONFLICT (observation_id) DO NOTHING;
                    """)
         mock_conn.commit.assert_called_once()
         mock_cursor.close.assert_called_once()
@@ -1168,9 +1043,10 @@ class TestETLLoadLocal(unittest.TestCase):
                             mock_transformed_local_data_temperature)
 
         self.assertEqual(mock_cursor.executemany.call_args.args[0],
-                          """
-                   INSERT INTO local_temperature(instrument_model, station_id, observed_time, celsius)
-                   VALUES (%s, %s, %s, %s);
+                         """
+                   INSERT INTO local_temperature(observation_id,instrument_model, station_id, observed_time, celsius)
+                   VALUES (%s, %s, %s, %s, %s)
+                   ON CONFLICT (observation_id) DO NOTHING;
                    """)
         mock_conn.commit.assert_called_once()
         mock_cursor.close.assert_called_once()
@@ -1197,9 +1073,10 @@ class TestETLLoadLocal(unittest.TestCase):
                             mock_transformed_local_data_co2)
 
         self.assertEqual(mock_cursor.executemany.call_args.args[0],
-                          """
-                   INSERT INTO local_CO2(instrument_model, station_id, observed_time, ppm)
-                   VALUES (%s, %s, %s, %s);
+                         """
+                   INSERT INTO local_CO2(observation_id, instrument_model, station_id, observed_time, ppm)
+                   VALUES (%s, %s, %s, %s, %s)
+                   ON CONFLICT (observation_id) DO NOTHING;
                    """)
         mock_conn.commit.assert_called_once()
         mock_cursor.close.assert_called_once()
